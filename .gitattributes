@@ -1,0 +1,2 @@
+# Licenza dell'installer NSIS: a capo Windows (CRLF) voluti, UTF-8 con BOM (P-104).
+build/LICENZA_BETA_TESTER.txt -text whitespace=cr-at-eol

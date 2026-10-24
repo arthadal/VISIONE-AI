@@ -1,0 +1,153 @@
+﻿VISIONE - LICENZA BETA PER TESTER
+=================================
+
+*** BOZZA - NON ANCORA VALIDA. Testo preparato per il programma di prova, da far rivedere
+a un legale prima di consegnare l'installer a chiunque. I campi tra [parentesi quadre]
+li completa il titolare. ***
+
+Versione del documento: bozza 2, 11/10/2026 - per VISIONE 1.1 (beta per tester)
+
+1. Chi concede la licenza
+   Titolare di VISIONE: [nome e cognome o ragione sociale], [indirizzo], [email di contatto].
+
+2. Cosa ti viene concesso
+   Una licenza gratuita, temporanea, personale, non esclusiva e non trasferibile per
+   installare e usare questa versione di prova (beta) di VISIONE su computer tuoi, al solo
+   scopo di provarla e di segnalare problemi e proposte al titolare.
+
+3. Cosa non puoi fare
+   - vendere, noleggiare, prestare, ridistribuire o pubblicare VISIONE o il suo installer;
+   - usarla per lavori in cui un errore possa causare danni a persone, dati o sistemi critici;
+   - aggirare le protezioni o decompilare il programma, salvo quanto la legge permette
+     comunque;
+   - rivelare a terzi contenuti, funzioni o difetti della beta senza il consenso del
+     titolare (riservatezza), finché la beta non è resa pubblica.
+
+4. Programmi e servizi di terzi
+   VISIONE coordina programmi che installi e usi tu, con i tuoi account: per esempio Claude
+   Code (account Anthropic), OpenCode con il tuo provider (per esempio NVIDIA) e modelli
+   locali con Ollama. Le condizioni d'uso, i limiti e gli eventuali costi di quei servizi
+   valgono tra te e i rispettivi fornitori, e sei tu a doverli rispettare. VISIONE non legge
+   e non conserva le tue password. Le chiavi dei servizi che inserisci nella procedura
+   guidata vengono verificate presso il servizio e salvate solo nelle variabili d'ambiente
+   del tuo utente Windows, mai nei file di VISIONE.
+
+5. I tuoi dati
+   VISIONE lavora sul tuo computer. Configurazione, memoria e registri restano nella cartella
+   %APPDATA%\VISIONE e non vengono inviati al titolare: VISIONE non ha telemetria. Il testo
+   che chiedi agli agenti arriva ai servizi di terzi che hai scelto (punto 4). Le
+   segnalazioni al titolare le mandi tu, quando e se vuoi. Il dettaglio è nell'informativa
+   sulla privacy, che trovi in VISIONE (Start > Privacy e licenza).
+
+6. Attenzione: gli agenti agiscono davvero
+   Gli agenti possono eseguire comandi e modificare file nelle cartelle che autorizzi, e con
+   la "modalità fiducia" possono farlo senza chiederti conferma. Tieni una copia di
+   sicurezza dei dati importanti e non autorizzare cartelle che non vuoi far modificare.
+
+7. Nessuna garanzia
+   VISIONE è una versione di prova: è fornita "così com’è", senza garanzie di
+   funzionamento, di assenza di errori o di adeguatezza a uno scopo.
+
+8. Responsabilità
+   Nei limiti consentiti dalla legge, il titolare non risponde di danni diretti o indiretti
+   derivanti dall'uso della beta, salvo i casi di dolo o colpa grave.
+
+9. Durata
+   La licenza vale fino alla fine del programma di prova o fino a quando il titolare la
+   revoca. A quel punto disinstalla VISIONE. Gli aggiornamenti arrivano come nuovo
+   installer da installare sopra la versione precedente.
+
+10. Componenti open source
+    VISIONE include componenti open source (per esempio Electron, React, sherpa-onnx,
+    onnxruntime), ognuno con la propria licenza, che resta valida e prevale per quel
+    componente.
+    La voce VISIONE usa il modello Pocket TTS di Kyutai (https://kyutai.org), licenza
+    CC BY 4.0, convertito in ONNX e quantizzato (KevinAHM/pocket-tts-onnx), senza
+    modifiche ai pesi. Il timbro è una voce sintetica, ricavata dalla voce «im_nicola»
+    di Kokoro (https://huggingface.co/hexgrad/Kokoro-82M, licenza Apache 2.0): non
+    imita nessuna persona reale.
+    L'ascolto usa il modello Parakeet TDT 0.6B v3 di NVIDIA
+    (https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3), licenza CC BY 4.0, convertito in
+    ONNX e quantizzato da k2-fsa/sherpa-onnx, senza modifiche ai pesi.
+
+11. Legge e foro
+    Si applica la legge italiana. Foro competente: [da completare].
+
+Installando VISIONE dichiari di aver letto e accettato questa licenza.
+
+
+=== ENGLISH ===
+
+VISIONE - BETA TESTER LICENCE
+=============================
+
+*** DRAFT - NOT YET VALID. Text prepared for the test programme, to be reviewed by a lawyer
+before the installer is given to anyone. The fields in [square brackets] are completed by
+the owner. If the two versions differ, the Italian one prevails. ***
+
+1. Who grants the licence
+   Owner of VISIONE: [name or company name], [address], [contact email].
+
+2. What you are granted
+   A free, temporary, personal, non-exclusive and non-transferable licence to install and use
+   this test (beta) version of VISIONE on your own computers, only to try it and to report
+   problems and suggestions to the owner.
+
+3. What you may not do
+   - sell, rent, lend, redistribute or publish VISIONE or its installer;
+   - use it for work where an error could harm people, data or critical systems;
+   - circumvent protections or decompile the program, except where the law allows it anyway;
+   - disclose contents, features or defects of the beta to third parties without the
+     owner's consent (confidentiality), until the beta is made public.
+
+4. Third-party programs and services
+   VISIONE coordinates programs that you install and use with your own accounts: for example
+   Claude Code (Anthropic account), OpenCode with your provider (for example NVIDIA) and local
+   models with Ollama. The terms of use, limits and any costs of those services apply between
+   you and their providers, and you must respect them. VISIONE does not read or keep your
+   passwords. Service keys you enter in the setup wizard are checked with the service and
+   saved only in your Windows user environment variables, never in VISIONE files.
+
+5. Your data
+   VISIONE works on your computer. Settings, memory and logs stay in the folder
+   %APPDATA%\VISIONE and are not sent to the owner: VISIONE has no telemetry. The text you
+   give the agents reaches the third-party services you chose (section 4). You send reports
+   to the owner yourself, when and if you want. Details are in the privacy notice, available
+   in VISIONE (Start > Privacy and licence).
+
+6. Warning: the agents really act
+   The agents can run commands and change files in the folders you allow, and in "trust mode"
+   they can do so without asking you. Keep a backup of important data and do not allow
+   folders you do not want changed.
+
+7. No warranty
+   VISIONE is a test version: it is provided "as is", without warranties of operation,
+   absence of errors or fitness for a purpose.
+
+8. Liability
+   To the extent permitted by law, the owner is not liable for direct or indirect damage
+   arising from the use of the beta, except in cases of wilful misconduct or gross
+   negligence.
+
+9. Duration
+   The licence lasts until the end of the test programme or until the owner revokes it. At
+   that point uninstall VISIONE. Updates come as a new installer to install over the previous
+   version.
+
+10. Open source components
+    VISIONE includes open source components (for example Electron, React, sherpa-onnx,
+    onnxruntime), each with its own licence, which remains valid and prevails for that
+    component.
+    The VISIONE voice uses Kyutai's Pocket TTS model (https://kyutai.org), licence
+    CC BY 4.0, converted to ONNX and quantized (KevinAHM/pocket-tts-onnx), with no
+    changes to the weights. The timbre is a synthetic voice, derived from the «im_nicola»
+    voice of Kokoro (https://huggingface.co/hexgrad/Kokoro-82M, Apache 2.0 licence): it
+    does not imitate any real person.
+    Listening uses NVIDIA's Parakeet TDT 0.6B v3 model
+    (https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3), licence CC BY 4.0, converted to
+    ONNX and quantized by k2-fsa/sherpa-onnx, with no changes to the weights.
+
+11. Law and jurisdiction
+    Italian law applies. Competent court: [to be completed].
+
+By installing VISIONE you declare that you have read and accepted this licence.

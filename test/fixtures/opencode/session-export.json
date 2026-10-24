@@ -1,0 +1,87 @@
+{
+ "info": {
+  "id": "ses_f073921f8ffe7VX3YEExPwe92O",
+  "projectID": "6def5f641d8482b6412ba48d26712ff9ae300560",
+  "cost": 0.0018836,
+  "tokens": {
+   "input": 8838,
+   "output": 4,
+   "reasoning": 141,
+   "cache": {
+    "read": 0,
+    "write": 0
+   }
+  },
+  "outcome": "succeeded",
+  "time": {
+   "created": 1790880177890,
+   "updated": 1790880177983,
+   "idle": 1790880180464
+  },
+  "location": {
+   "directory": "C:\\visione-test\\ws"
+  }
+ },
+ "messages": [
+  {
+   "id": "msg_0f8c6deed0015hfTsc8Gb8JeC0",
+   "time": {
+    "created": 1790880178012
+   },
+   "text": "\"Rispondi soltanto con la parola OK, senza usare strumenti.\"",
+   "files": [],
+   "type": "user"
+  },
+  {
+   "id": "msg_0f8c6df6c001fCLvj7Aa5LLWSu",
+   "time": {
+    "created": 1790880178037,
+    "streamed": 1790880180459,
+    "completed": 1790880180461
+   },
+   "type": "assistant",
+   "agent": "build",
+   "model": {
+    "id": "nvidia/nemotron-3-super-120b-a12b",
+    "providerID": "nvidia"
+   },
+   "content": [
+    {
+     "type": "reasoning",
+     "text": "Okay, the user is asking me to respond only with the word \"O",
+     "state": {
+      "reasoningField": "reasoning_content"
+     },
+     "time": {
+      "created": 1790880179354,
+      "completed": 1790880180454
+     }
+    },
+    {
+     "type": "text",
+     "text": "OK"
+    }
+   ],
+   "finish": "stop",
+   "rawFinish": "stop",
+   "cost": 0.0018836,
+   "tokens": {
+    "input": 8838,
+    "output": 4,
+    "reasoning": 141,
+    "cache": {
+     "read": 0,
+     "write": 0
+    }
+   }
+  },
+  {
+   "id": "msg_0f8c6e8f0001bqJISX10wzvZVO",
+   "time": {
+    "created": 1790880180464
+   },
+   "type": "idle",
+   "outcome": "succeeded"
+  }
+ ]
+}

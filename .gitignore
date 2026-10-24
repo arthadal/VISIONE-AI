@@ -1,0 +1,68 @@
+# ── Dipendenze e build ────────────────────────────────────────────────────────
+node_modules/
+out/
+dist/
+release/
+.vite/
+coverage/
+test-results/
+*.tsbuildinfo
+*.tmp
+
+# ── Database di VISIONE: dati dell'utente, mai nel repository ────────────────
+visione.db
+visione.db-*
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# ── Segreti: variabili d'ambiente, chiavi private, credenziali ───────────────
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.ppk
+*.jks
+*.keystore
+*.gpg
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+client_secret*.json
+credentials*.json
+token.json
+*.secret
+secrets/
+
+# ── Log e diagnostica ─────────────────────────────────────────────────────────
+logs/
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+*.dmp
+*.stackdump
+
+# ── File di sistema ───────────────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+._*
+*.swp
+*~
+
+# Backup locali prima delle modifiche (P-101): mai nel repository.
+.backup/
+# Voce VISIONE (P-110): i modelli ONNX (125 MB) non vanno in git; impronte in vendor/voce-visione/it/impronte.json.
+vendor/voce-visione/it/*.onnx

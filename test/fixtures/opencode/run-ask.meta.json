@@ -1,0 +1,4 @@
+{
+ "exitCode": 1,
+ "stderr": "\u001b[93m\u001b[1m! \u001b[0mpermission requested: shell (echo prova-ask); auto-rejecting\r\n"
+}

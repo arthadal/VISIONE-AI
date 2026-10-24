@@ -1,0 +1,61 @@
+# Packaging Windows di VISIONE (VISIONE_ARCHITECTURE §29–30, DECISIONI P-14, P-101 e P-104).
+# Installer NSIS per utente, non one-click, cartella scegliibile; nessuna firma (P-14: un certificato
+# costa) → avviso SmartScreen; nessun updater di rete; modelli voce non inclusi (scaricati su consenso).
+# L'app installata è l'edizione `tester` (P-104): parla solo con le voci di Windows.
+appId: it.matte.visione
+productName: VISIONE
+copyright: "© 2026 — versione beta per tester (licenza in bozza, P-104)"
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+  - package.json
+  # Voce VISIONE (P-110): di onnxruntime-node servono solo i binari Windows x64 (gli altri ~170 MB no).
+  - "!node_modules/onnxruntime-node/bin/napi-v6/{linux,darwin}/**"
+  - "!node_modules/onnxruntime-node/bin/napi-v6/win32/arm64/**"
+asar: true
+# Moduli nativi N-API con binari precompilati (node-pty, sherpa-onnx, onnxruntime-node): fuori dall'asar,
+# perché DLL ed eseguibili ausiliari (conpty, onnxruntime) devono esistere su disco. Nessuna ricompilazione (P-31).
+asarUnpack:
+  - node_modules/node-pty/**
+  - node_modules/sherpa-onnx-node/**
+  - node_modules/sherpa-onnx-win-x64/**
+  - node_modules/onnxruntime-node/**
+# Voce VISIONE (P-110): modelli Pocket TTS (Kyutai, CC-BY-4.0), tokenizer e impronta della voce, inclusi
+# nell'installer (mai un download a parte). `after-pack` ne ricontrolla le impronte.
+extraResources:
+  - from: vendor/voce-visione/it
+    to: voce-visione/it
+    filter:
+      - "*.onnx"
+      - "*.json"
+      - "*.f32"
+      - PROVENIENZA.md
+npmRebuild: false
+publish: null
+# P-104: DLL sherpa-onnx senza sintesi (niente espeak-ng, GPL) al posto di quelle di node_modules; la
+# build si ferma se nel pacchetto resta espeak-ng.
+afterPack: ./tools/after-pack.cjs
+win:
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  # Licenza beta mostrata e da accettare durante l'installazione (BOZZA da far rivedere, P-104).
+  # Fonte unica (11/10/2026): lo stesso testo che l'app mostra in «Privacy e licenza».
+  license: src/renderer/legal/LICENZA_BETA_TESTER.txt
+  # La home `%APPDATA%\VISIONE` (dati, memoria, config) resta alla disinstallazione.
+  deleteAppDataOnUninstall: false
+  # Installatore in italiano e inglese (P-108): sceglie da solo la lingua di Windows, senza chiedere.
+  multiLanguageInstaller: true
+  installerLanguages:
+    - it_IT
+    - en_US
+  displayLanguageSelector: false
+  artifactName: VISIONE-Setup-${version}.${ext}

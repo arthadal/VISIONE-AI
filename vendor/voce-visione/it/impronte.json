@@ -1,0 +1,34 @@
+{
+  "bundle.json": {
+    "bytes": 24365,
+    "sha256": "c779c25fd836c9b85a3fc570474774777176757bd6bec0b5bffbbe599644a9f9"
+  },
+  "flow_lm_flow_int8.onnx": {
+    "bytes": 9962530,
+    "sha256": "21b2bec2f9ae4323fc545a0c7ffb274bdfa925a699fd304ed03aba53e4ca9129"
+  },
+  "flow_lm_main_int8.onnx": {
+    "bytes": 76341079,
+    "sha256": "f43ce4d823471095a7bd6d9dcfcceb46145ea96b0f2b85b7d668f15816965055"
+  },
+  "mimi_decoder_int8.onnx": {
+    "bytes": 22684077,
+    "sha256": "f120bc5cddca9514c511f128786f5d9e6e6893b067faae5e30f5b2bd5643aa03"
+  },
+  "text_conditioner.onnx": {
+    "bytes": 16388344,
+    "sha256": "692369f5ac340006fa44252155da77fe6c8a60a859848297777e0caea534068e"
+  },
+  "tokenizer.json": {
+    "bytes": 124155,
+    "sha256": "6fcf6dbb8397f5824163e17ec14ff4e01fe224ce198768d2638f5be91eb5c9c0"
+  },
+  "voce.f32": {
+    "bytes": 1114112,
+    "sha256": "23bfc2c4e3dc8842decd1832fcbb38d6721e57ca344796eba1254f2ee47f2b8f"
+  },
+  "voce.json": {
+    "bytes": 51,
+    "sha256": "71e13a569bd1ffa9926fe67abf53be976d73b49e2d93fd786b827bc4535f0237"
+  }
+}

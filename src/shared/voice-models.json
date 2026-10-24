@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "source": "https://github.com/k2-fsa/sherpa-onnx/releases",
+  "models": [
+    {
+      "id": "silero-vad",
+      "role": "vad",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx",
+      "archive": false,
+      "dir": "silero-vad",
+      "size": 643854,
+      "sha256": "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6",
+      "license": "MIT",
+      "files": [
+        "silero_vad.onnx"
+      ]
+    },
+    {
+      "id": "parakeet-tdt-v3",
+      "role": "stt",
+      "kind": "nemo-transducer",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8.tar.bz2",
+      "archive": true,
+      "dir": "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8",
+      "size": 487170055,
+      "sha256": "5793d0fd397c5778d2cf2126994d58e9d56b1be7c04d13c7a15bb1b4eafb16bf",
+      "license": "CC-BY-4.0",
+      "extractOnly": true,
+      "files": [
+        "encoder.int8.onnx",
+        "decoder.int8.onnx",
+        "joiner.int8.onnx",
+        "tokens.txt"
+      ]
+    },
+    {
+      "id": "whisper-small",
+      "role": "stt",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-small.tar.bz2",
+      "archive": true,
+      "dir": "sherpa-onnx-whisper-small",
+      "size": 639387718,
+      "sha256": "486a46afbb7ba798507190ffe02fea2dd726049af212e774537efac6afb210a6",
+      "license": "MIT",
+      "extractOnly": true,
+      "files": [
+        "small-encoder.int8.onnx",
+        "small-decoder.int8.onnx",
+        "small-tokens.txt"
+      ],
+      "optional": true
+    },
+    {
+      "id": "whisper-base",
+      "role": "stt",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-base.tar.bz2",
+      "archive": true,
+      "dir": "sherpa-onnx-whisper-base",
+      "size": 207557382,
+      "sha256": "911b2083efd7c0dca2ac3b358b75222660dc09fb716d64fbfc417ba6c99ff3de",
+      "license": "MIT",
+      "extractOnly": true,
+      "files": [
+        "base-encoder.int8.onnx",
+        "base-decoder.int8.onnx",
+        "base-tokens.txt"
+      ]
+    },
+    {
+      "id": "kokoro-multi-lang-v1_0",
+      "role": "tts",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2",
+      "archive": true,
+      "dir": "kokoro-multi-lang-v1_0",
+      "size": 349906910,
+      "sha256": "c5f7e2d2caf082bc1d20fb70334a61d99d20b484500aad32e7cf84c128ea3298",
+      "license": "Apache-2.0",
+      "files": [
+        "model.onnx",
+        "voices.bin",
+        "tokens.txt",
+        "espeak-ng-data/phontab"
+      ]
+    },
+    {
+      "id": "eres2net-sv-en",
+      "role": "speaker",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_eres2net_sv_en_voxceleb_16k.onnx",
+      "archive": false,
+      "dir": "speaker-eres2net",
+      "size": 26485263,
+      "sha256": "c59158379255ad66e161679cca6af8d52d51e389e3224ab7d7a7baae295c2db5",
+      "license": "Apache-2.0",
+      "files": [
+        "3dspeaker_speech_eres2net_sv_en_voxceleb_16k.onnx"
+      ]
+    },
+    {
+      "id": "gtcrn-simple",
+      "role": "denoise",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/speech-enhancement-models/gtcrn_simple.onnx",
+      "archive": false,
+      "dir": "gtcrn",
+      "size": 535638,
+      "sha256": "e77603ac0c23dac3227dd2d7135b3a585cbee2679048aecfa886657d3ae1b534",
+      "license": "MIT",
+      "files": [
+        "gtcrn_simple.onnx"
+      ]
+    }
+  ]
+}

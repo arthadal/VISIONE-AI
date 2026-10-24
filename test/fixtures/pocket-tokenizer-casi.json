@@ -1,0 +1,676 @@
+{
+ "cases": [
+  {
+   "text": "Buonasera, signore. Tutti i sistemi sono operativi.",
+   "ids": [
+    3319,
+    279,
+    3131,
+    261,
+    1522,
+    269,
+    263,
+    2851,
+    294,
+    283,
+    2916,
+    291,
+    1266,
+    867,
+    263
+   ],
+   "decoded": "Buonasera, signore. Tutti i sistemi sono operativi."
+  },
+  {
+   "text": "Ho completato l'analisi: tre attività in coda, nessun errore.",
+   "ids": [
+    1036,
+    260,
+    1563,
+    870,
+    282,
+    267,
+    279,
+    2199,
+    62,
+    575,
+    1220,
+    392,
+    268,
+    329,
+    526,
+    261,
+    260,
+    1783,
+    260,
+    2641,
+    263
+   ],
+   "decoded": "Ho completato l'analisi: tre attività in coda, nessun errore."
+  },
+  {
+   "text": "Il meteo di domani prevede pioggia dal pomeriggio. Desidera che proceda?",
+   "ids": [
+    420,
+    363,
+    287,
+    285,
+    262,
+    260,
+    1834,
+    323,
+    3736,
+    323,
+    426,
+    991,
+    432,
+    260,
+    3084,
+    524,
+    263,
+    957,
+    962,
+    264,
+    260,
+    3038,
+    279,
+    316
+   ],
+   "decoded": "Il meteo di domani prevede pioggia dal pomeriggio. Desidera che proceda?"
+  },
+  {
+   "text": "Perché è così? Più tardi, però, ci sarà un caffè.",
+   "ids": [
+    260,
+    601,
+    271,
+    383,
+    316,
+    3576,
+    3032,
+    261,
+    374,
+    261,
+    307,
+    670,
+    270,
+    3178,
+    263
+   ],
+   "decoded": "Perché è così? Più tardi, però, ci sarà un caffè."
+  },
+  {
+   "text": "Timer di 10 minuti avviato per la pasta.",
+   "ids": [
+    1290,
+    2002,
+    262,
+    260,
+    343,
+    313,
+    260,
+    1428,
+    3942,
+    276,
+    274,
+    272,
+    516,
+    459,
+    263
+   ],
+   "decoded": "Timer di 10 minuti avviato per la pasta."
+  },
+  {
+   "text": "Promemoria in ritardo, era per oggi alle 10:10: togliere la pasta.",
+   "ids": [
+    1651,
+    495,
+    407,
+    614,
+    268,
+    302,
+    289,
+    1554,
+    261,
+    369,
+    274,
+    506,
+    504,
+    260,
+    343,
+    313,
+    62,
+    343,
+    313,
+    62,
+    260,
+    276,
+    1627,
+    272,
+    516,
+    459,
+    263
+   ],
+   "decoded": "Promemoria in ritardo, era per oggi alle 10:10: togliere la pasta."
+  },
+  {
+   "text": "Aggiunto alla lista della spesa: latte, uova e pane.",
+   "ids": [
+    384,
+    934,
+    2944,
+    357,
+    282,
+    1235,
+    306,
+    3459,
+    62,
+    272,
+    663,
+    261,
+    260,
+    414,
+    285,
+    322,
+    265,
+    516,
+    312,
+    263
+   ],
+   "decoded": "Aggiunto alla lista della spesa: latte, uova e pane."
+  },
+  {
+   "text": "L'email è stata inviata a mario.rossi@example.com alle 15:30.",
+   "ids": [
+    546,
+    267,
+    293,
+    415,
+    1506,
+    271,
+    599,
+    3575,
+    289,
+    266,
+    284,
+    832,
+    263,
+    361,
+    562,
+    68,
+    293,
+    719,
+    279,
+    1369,
+    320,
+    263,
+    2175,
+    504,
+    260,
+    343,
+    443,
+    62,
+    456,
+    313,
+    263
+   ],
+   "decoded": "L'email è stata inviata a mario.rossi@example.com alle 15:30."
+  },
+  {
+   "text": "VISIONE online. Tutti i sistemi operativi, signore!",
+   "ids": [
+    1560,
+    788,
+    945,
+    788,
+    1044,
+    1322,
+    1062,
+    260,
+    1971,
+    263,
+    2851,
+    294,
+    283,
+    2916,
+    1266,
+    867,
+    261,
+    1522,
+    269,
+    37
+   ],
+   "decoded": "VISIONE online. Tutti i sistemi operativi, signore!"
+  },
+  {
+   "text": "Città, università, perché, così, più, già, giù, però, né, sé.",
+   "ids": [
+    744,
+    397,
+    618,
+    261,
+    260,
+    1837,
+    1111,
+    261,
+    260,
+    299,
+    261,
+    383,
+    261,
+    301,
+    261,
+    475,
+    261,
+    2491,
+    261,
+    374,
+    261,
+    1675,
+    261,
+    1306,
+    263
+   ],
+   "decoded": "Città, università, perché, così, più, già, giù, però, né, sé."
+  },
+  {
+   "text": "Ecco: 3,14 euro; 1.250 file; 42% della CPU.",
+   "ids": [
+    830,
+    62,
+    260,
+    456,
+    261,
+    343,
+    505,
+    1225,
+    63,
+    260,
+    343,
+    263,
+    349,
+    443,
+    313,
+    893,
+    320,
+    63,
+    260,
+    505,
+    349,
+    41,
+    306,
+    539,
+    1132,
+    2170,
+    263
+   ],
+   "decoded": "Ecco: 3,14 euro; 1.250 file; 42% della CPU."
+  },
+  {
+   "text": "«Virgolette» e “altre virgolette”, trattini – e — punti…",
+   "ids": [
+    260,
+    198,
+    175,
+    2148,
+    281,
+    2870,
+    1574,
+    198,
+    191,
+    265,
+    260,
+    230,
+    132,
+    160,
+    628,
+    397,
+    269,
+    2447,
+    1574,
+    230,
+    132,
+    161,
+    261,
+    260,
+    2981,
+    314,
+    260,
+    230,
+    132,
+    151,
+    265,
+    260,
+    230,
+    132,
+    152,
+    1248,
+    230,
+    132,
+    170
+   ],
+   "decoded": "«Virgolette» e “altre virgolette”, trattini – e — punti…"
+  },
+  {
+   "text": "Ćevapčići, naïve, façade, Zürich, 東京, emoji 🙂.",
+   "ids": [
+    260,
+    200,
+    138,
+    293,
+    322,
+    454,
+    200,
+    145,
+    281,
+    200,
+    139,
+    281,
+    261,
+    260,
+    305,
+    199,
+    179,
+    453,
+    261,
+    330,
+    199,
+    171,
+    279,
+    379,
+    261,
+    260,
+    94,
+    199,
+    192,
+    338,
+    1010,
+    261,
+    260,
+    234,
+    161,
+    181,
+    232,
+    190,
+    176,
+    261,
+    1745,
+    110,
+    281,
+    260,
+    244,
+    163,
+    157,
+    134,
+    263
+   ],
+   "decoded": "Ćevapčići, naïve, façade, Zürich, 東京, emoji 🙂."
+  },
+  {
+   "text": "  spazi   doppi  e\tschede ",
+   "ids": [
+    260,
+    260,
+    2756,
+    260,
+    260,
+    462,
+    1730,
+    260,
+    265,
+    13,
+    1766,
+    379,
+    260
+   ],
+   "decoded": "  spazi   doppi  e\tschede "
+  },
+  {
+   "text": ".!...?",
+   "ids": [
+    260,
+    263,
+    37,
+    722,
+    316
+   ],
+   "decoded": ".!...?"
+  },
+  {
+   "text": ",;:",
+   "ids": [
+    260,
+    261,
+    63,
+    62
+   ],
+   "decoded": ",;:"
+  },
+  {
+   "text": "A",
+   "ids": [
+    384
+   ],
+   "decoded": "A"
+  }
+ ],
+ "prepared": [
+  {
+   "text": "Buonasera, signore. Tutti i sistemi sono operativi.",
+   "prepared": "Buonasera, signore. Tutti i sistemi sono operativi.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Ho completato l'analisi: tre attività in coda, nessun errore.",
+   "prepared": "Ho completato l'analisi: tre attività in coda, nessun errore.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Il meteo di domani prevede pioggia dal pomeriggio. Desidera che proceda?",
+   "prepared": "Il meteo di domani prevede pioggia dal pomeriggio. Desidera che proceda?",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Perché è così? Più tardi, però, ci sarà un caffè.",
+   "prepared": "Perché è così? Più tardi, però, ci sarà un caffè.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Timer di 10 minuti avviato per la pasta.",
+   "prepared": "Timer di 10 minuti avviato per la pasta.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Promemoria in ritardo, era per oggi alle 10:10: togliere la pasta.",
+   "prepared": "Promemoria in ritardo, era per oggi alle 10:10: togliere la pasta.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Aggiunto alla lista della spesa: latte, uova e pane.",
+   "prepared": "Aggiunto alla lista della spesa: latte, uova e pane.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "L'email è stata inviata a mario.rossi@example.com alle 15:30.",
+   "prepared": "L'email è stata inviata a mario.rossi@example.com alle 15:30.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "VISIONE online. Tutti i sistemi operativi, signore!",
+   "prepared": "VISIONE online. Tutti i sistemi operativi, signore!",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Città, università, perché, così, più, già, giù, però, né, sé.",
+   "prepared": "Città, università, perché, così, più, già, giù, però, né, sé.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Ecco: 3,14 euro; 1.250 file; 42% della CPU.",
+   "prepared": "Ecco: 3,14 euro; 1.250 file; 42% della CPU.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "«Virgolette» e “altre virgolette”, trattini – e — punti…",
+   "prepared": "«Virgolette» e “altre virgolette”, trattini – e — punti…",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Ćevapčići, naïve, façade, Zürich, 東京, emoji 🙂.",
+   "prepared": "Ćevapčići, naïve, façade, Zürich, 東京, emoji 🙂.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "  spazi   doppi  e\tschede ",
+   "prepared": "Spazi  doppi e\tschede.",
+   "framesAfterEos": 5
+  },
+  {
+   "text": ".!...?",
+   "prepared": ".!...?",
+   "framesAfterEos": 5
+  },
+  {
+   "text": ",;:",
+   "prepared": ",;:",
+   "framesAfterEos": 5
+  },
+  {
+   "text": "A",
+   "prepared": "A.",
+   "framesAfterEos": 5
+  },
+  {
+   "text": "Buonasera, signore. Tutti i sistemi sono operativi. Ho completato l'analisi: tre attività in coda, nessun errore. Il meteo di domani prevede pioggia dal pomeriggio, con temperature in calo e vento moderato da nord-est. Desidera che proceda?",
+   "prepared": "Buonasera, signore. Tutti i sistemi sono operativi. Ho completato l'analisi: tre attività in coda, nessun errore. Il meteo di domani prevede pioggia dal pomeriggio, con temperature in calo e vento moderato da nord-est. Desidera che proceda?",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Ecco il resoconto della giornata: la prima riunione è alle nove con il gruppo del progetto, la seconda alle undici e mezza con il fornitore, poi pranzo libero, nel pomeriggio due chiamate, una revisione del codice, il controllo della posta arretrata, e infine la preparazione della presentazione per domani mattina; ricordi anche di comprare il latte.",
+   "prepared": "Ecco il resoconto della giornata: la prima riunione è alle nove con il gruppo del progetto, la seconda alle undici e mezza con il fornitore, poi pranzo libero, nel pomeriggio due chiamate, una revisione del codice, il controllo della posta arretrata, e infine la preparazione della presentazione per domani mattina; ricordi anche di comprare il latte.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "ciao",
+   "prepared": "Ciao.",
+   "framesAfterEos": 5
+  },
+  {
+   "text": "Va bene\n\nlo faccio subito",
+   "prepared": "Va bene lo faccio subito.",
+   "framesAfterEos": 3
+  },
+  {
+   "text": "Sì!!! Perfetto... e adesso?",
+   "prepared": "Sì!!! Perfetto... e adesso?",
+   "framesAfterEos": 5
+  }
+ ],
+ "splits": [
+  {
+   "text": "Buonasera, signore. Tutti i sistemi sono operativi. Ho completato l'analisi: tre attività in coda, nessun errore. Il meteo di domani prevede pioggia dal pomeriggio, con temperature in calo e vento moderato da nord-est. Desidera che proceda?",
+   "chunks": [
+    "Buonasera, signore. Tutti i sistemi sono operativi. Ho completato l'analisi: tre attività in coda, nessun errore.",
+    "Il meteo di domani prevede pioggia dal pomeriggio, con temperature in calo e vento moderato da nord-est. Desidera che proceda?"
+   ]
+  },
+  {
+   "text": "Ecco il resoconto della giornata: la prima riunione è alle nove con il gruppo del progetto, la seconda alle undici e mezza con il fornitore, poi pranzo libero, nel pomeriggio due chiamate, una revisione del codice, il controllo della posta arretrata, e infine la preparazione della presentazione per domani mattina; ricordi anche di comprare il latte.",
+   "chunks": [
+    "Ecco il resoconto della giornata: la prima riunione è alle nove con il gruppo del progetto, la seconda alle undici e mezza con il fornitore, poi pranzo libero,",
+    "nel pomeriggio due chiamate, una revisione del codice, il controllo della posta arretrata, e infine la preparazione della presentazione per domani mattina;",
+    "ricordi anche di comprare il latte."
+   ]
+  },
+  {
+   "text": "ciao",
+   "chunks": [
+    "Ciao."
+   ]
+  },
+  {
+   "text": "Va bene\n\nlo faccio subito",
+   "chunks": [
+    "Va bene lo faccio subito."
+   ]
+  },
+  {
+   "text": "Sì!!! Perfetto... e adesso?",
+   "chunks": [
+    "Sì!!! Perfetto... e adesso?"
+   ]
+  },
+  {
+   "text": "Buonasera, signore. Tutti i sistemi sono operativi.",
+   "chunks": [
+    "Buonasera, signore. Tutti i sistemi sono operativi."
+   ]
+  },
+  {
+   "text": "Ho completato l'analisi: tre attività in coda, nessun errore.",
+   "chunks": [
+    "Ho completato l'analisi: tre attività in coda, nessun errore."
+   ]
+  },
+  {
+   "text": "Il meteo di domani prevede pioggia dal pomeriggio. Desidera che proceda?",
+   "chunks": [
+    "Il meteo di domani prevede pioggia dal pomeriggio. Desidera che proceda?"
+   ]
+  },
+  {
+   "text": "Perché è così? Più tardi, però, ci sarà un caffè.",
+   "chunks": [
+    "Perché è così? Più tardi, però, ci sarà un caffè."
+   ]
+  },
+  {
+   "text": "Timer di 10 minuti avviato per la pasta.",
+   "chunks": [
+    "Timer di 10 minuti avviato per la pasta."
+   ]
+  },
+  {
+   "text": "Promemoria in ritardo, era per oggi alle 10:10: togliere la pasta.",
+   "chunks": [
+    "Promemoria in ritardo, era per oggi alle 10:10: togliere la pasta."
+   ]
+  },
+  {
+   "text": "Aggiunto alla lista della spesa: latte, uova e pane.",
+   "chunks": [
+    "Aggiunto alla lista della spesa: latte, uova e pane."
+   ]
+  },
+  {
+   "text": "L'email è stata inviata a mario.rossi@example.com alle 15:30.",
+   "chunks": [
+    "L'email è stata inviata a mario. rossi@example. com alle 15:30."
+   ]
+  },
+  {
+   "text": "VISIONE online. Tutti i sistemi operativi, signore!",
+   "chunks": [
+    "VISIONE online. Tutti i sistemi operativi, signore!"
+   ]
+  },
+  {
+   "text": "Città, università, perché, così, più, già, giù, però, né, sé.",
+   "chunks": [
+    "Città, università, perché, così, più, già, giù, però, né, sé."
+   ]
+  },
+  {
+   "text": "Ecco: 3,14 euro; 1.250 file; 42% della CPU.",
+   "chunks": [
+    "Ecco: 3,14 euro; 1. 250 file; 42% della CPU."
+   ]
+  },
+  {
+   "text": "«Virgolette» e “altre virgolette”, trattini – e — punti…",
+   "chunks": [
+    "«Virgolette» e “altre virgolette”, trattini – e — punti…"
+   ]
+  }
+ ]
+}

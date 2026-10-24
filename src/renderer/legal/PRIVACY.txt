@@ -1,0 +1,151 @@
+﻿VISIONE - INFORMATIVA SULLA PRIVACY
+===================================
+
+*** BOZZA - da far rivedere a un legale prima di distribuire VISIONE. I campi tra
+[parentesi quadre] li completa il titolare. ***
+
+Versione del documento: bozza 2, 17/10/2026
+
+1. Chi è il titolare
+   [nome e cognome o ragione sociale], [indirizzo], [email di contatto].
+
+2. In breve
+   VISIONE funziona sul tuo computer. Non ha telemetria, non ha account e non manda dati
+   al titolare. Escono dal computer solo i dati elencati al punto 4, verso servizi che
+   attivi tu; l'unica eccezione è il controllo della rete (punto 4 g), acceso di serie, che
+   non manda dati e si spegne nelle Impostazioni.
+
+3. Cosa resta sul tuo computer
+   Nella cartella %APPDATA%\VISIONE: configurazione, database (obiettivi, compiti, memoria
+   degli agenti, promemoria), registri, segnalazioni che crei, modelli voce e modello
+   offline scaricati e,
+   se attivi "Ascolta solo il proprietario", l'impronta della tua voce. Questi file restano
+   anche dopo la disinstallazione: per cancellarli elimina quella cartella.
+   - Microfono: l'audio è elaborato sul computer (parola d'avvio e trascrizione locali);
+     non viene salvato su disco né inviato.
+   - Webcam (widget Umanoide, solo se la accendi): immagini ridotte e in bianco e nero,
+     analizzate sul computer dal rilevatore di volti di Windows e scartate subito; niente
+     disco, niente rete.
+   - Chiavi dei servizi (per esempio NVIDIA): se le inserisci nella procedura guidata,
+     VISIONE le verifica presso il servizio e le salva nelle variabili d'ambiente del tuo
+     utente Windows, non nei file di VISIONE. Registri e segnalazioni non le contengono.
+
+4. Cosa esce dal computer, e verso chi
+   a) Motori degli agenti: il testo che scrivi o detti agli agenti, e i file che leggono per
+      svolgere il compito, arrivano al servizio del motore che hai configurato (per esempio
+      Anthropic per Claude Code; NVIDIA o un altro fornitore tramite OpenCode; con Ollama
+      restano sul computer). Valgono le informative di quei fornitori.
+   b) Meteo (solo se accendi il widget): il nome della città va a OpenStreetMap Nominatim
+      (nominatim.openstreetmap.org) per trovare le coordinate, e le coordinate al servizio
+      meteorologico norvegese (api.met.no).
+   c) Modelli voce (solo con il tuo consenso, dalla procedura guidata): si scaricano da
+      github.com.
+   d) Installazione dei motori (solo se la scegli): il programma ufficiale di Claude Code si
+      scarica da claude.ai; Node.js, OpenCode e Ollama li scaricano winget e npm dai siti dei
+      loro autori. Il runtime Microsoft Visual C++, che serve alla voce VISIONE e al modello
+      offline (solo se premi «Installa» nel passo Voce), lo scarica winget da Microsoft
+      (spiegazione su learn.microsoft.com).
+   e) Browser di VISIONE (solo se lo apri): si collega ai siti che visiti tu; le ricerche
+      scritte nella barra degli indirizzi vanno a DuckDuckGo (duckduckgo.com). Cookie e
+      accessi del browser restano sul computer, separati dal resto di VISIONE.
+   f) Modello offline (solo con il tuo consenso, da Impostazioni o dall'avviso della
+      modalità offline): si scarica da huggingface.co. Offline le richieste restano sul
+      computer: le elabora quel modello, senza rete.
+   g) Controllo della rete (modalità offline automatica, accesa di serie): ogni minuto
+      VISIONE apre e chiude una connessione con www.msftconnecttest.com (o, se non risponde,
+      www.microsoft.com), lo stesso controllo che fa Windows, per sapere se c'è rete. Non
+      manda dati. Si spegne togliendo "Passa da sola alla modalità offline" nelle
+      Impostazioni.
+   Ogni connessione mostra al servizio il tuo indirizzo IP, come qualunque programma.
+
+5. Segnalazioni
+   "Segnala un problema" crea un pacchetto che resta sul computer. Prima di salvarlo VISIONE
+   toglie chiavi e token, nome utente, nome del PC, percorsi personali ed email. Lo mandi tu,
+   se vuoi, a [email di contatto]: il titolare lo usa solo per correggere i problemi e lo
+   cancella entro [periodo] dalla chiusura del programma di prova.
+
+6. I tuoi diritti
+   Per le segnalazioni che hai mandato puoi chiedere accesso, correzione o cancellazione
+   scrivendo a [email di contatto]. Se sei nell'Unione europea puoi rivolgerti anche
+   all'autorità di controllo del tuo paese (in Italia il Garante per la protezione dei dati
+   personali). [Basi giuridiche e tempi di conservazione da confermare con il legale.]
+
+7. Modifiche
+   Le nuove versioni di questa informativa arrivano con gli aggiornamenti di VISIONE.
+
+
+=== ENGLISH ===
+
+VISIONE - PRIVACY NOTICE
+========================
+
+*** DRAFT - to be reviewed by a lawyer before VISIONE is distributed. The fields in
+[square brackets] are completed by the owner. ***
+
+Document version: draft 2, 17 October 2026
+
+1. Who is responsible
+   [name or company name], [address], [contact email].
+
+2. In short
+   VISIONE runs on your computer. It has no telemetry, no accounts and sends no data to the
+   owner. Only the data listed in section 4 leaves your computer, towards services you turn
+   on; the only exception is the network check (section 4 g), on by default, which sends no
+   data and can be turned off in Settings.
+
+3. What stays on your computer
+   In the folder %APPDATA%\VISIONE: settings, database (goals, tasks, agent memory,
+   reminders), logs, the reports you create, downloaded voice models and offline model and,
+   if you turn on
+   "Listen only to the owner", your voice print. These files remain after uninstalling: to
+   delete them, delete that folder.
+   - Microphone: audio is processed on the computer (wake word and transcription run
+     locally); it is not saved to disk or sent.
+   - Webcam (Humanoid widget, only if you turn it on): small greyscale images, analysed on
+     the computer by the Windows face detector and discarded at once; no disk, no network.
+   - Service keys (for example NVIDIA): if you enter them in the setup wizard, VISIONE checks
+     them with the service and saves them in your Windows user environment variables, not in
+     VISIONE files. Logs and reports do not contain them.
+
+4. What leaves your computer, and to whom
+   a) Agent engines: the text you write or dictate to the agents, and the files they read to
+      do the task, reach the service of the engine you configured (for example Anthropic for
+      Claude Code; NVIDIA or another provider through OpenCode; with Ollama they stay on the
+      computer). Those providers' privacy notices apply.
+   b) Weather (only if you turn the widget on): the city name goes to OpenStreetMap Nominatim
+      (nominatim.openstreetmap.org) to find its coordinates, and the coordinates to the
+      Norwegian weather service (api.met.no).
+   c) Voice models (only with your consent, from the setup wizard): downloaded from
+      github.com.
+   d) Engine installation (only if you choose it): the official Claude Code installer is
+      downloaded from claude.ai; Node.js, OpenCode and Ollama are downloaded by winget and npm
+      from their authors' sites. The Microsoft Visual C++ runtime, needed by the VISIONE voice
+      and the offline model (only if you press "Install" in the Voice step), is downloaded by
+      winget from Microsoft (explained on learn.microsoft.com).
+   e) VISIONE browser (only if you open it): it connects to the sites you visit; searches
+      typed in the address bar go to DuckDuckGo (duckduckgo.com). The browser's cookies and
+      sign-ins stay on the computer, separate from the rest of VISIONE.
+   f) Offline model (only with your consent, from Settings or from the offline mode notice):
+      downloaded from huggingface.co. Offline, requests stay on the computer: that model
+      handles them, with no network.
+   g) Network check (automatic offline mode, on by default): every minute VISIONE opens and
+      closes a connection to www.msftconnecttest.com (or, if it does not answer,
+      www.microsoft.com), the same check Windows does, to know whether there is a network.
+      It sends no data. Turn it off by unticking "Switch to offline mode by itself" in
+      Settings.
+   Every connection shows your IP address to the service, as with any program.
+
+5. Reports
+   "Report a problem" creates a package that stays on your computer. Before saving it VISIONE
+   removes keys and tokens, user name, PC name, personal paths and emails. You send it
+   yourself, if you want, to [contact email]: the owner uses it only to fix problems and
+   deletes it within [period] after the end of the test programme.
+
+6. Your rights
+   For reports you sent you can ask for access, correction or deletion by writing to
+   [contact email]. If you are in the European Union you can also contact your country's
+   supervisory authority. [Legal bases and retention periods to be confirmed with the
+   lawyer.]
+
+7. Changes
+   New versions of this notice come with VISIONE updates.
