@@ -64,7 +64,6 @@ function recycleWithPowerShell(paths: readonly string[]): Promise<boolean> {
   });
 }
 
-/** «nome (2).ext», «nome (3).ext»…: il primo nome libero nella cartella (mai sovrascrivere). */
 /**
  * Ciò che Esplora risorse di Windows non mostra (attributi nascosto/sistema): file di configurazione
  * delle cartelle, cache delle miniature, profilo del registro, file temporanei di Office, AppData.
@@ -75,6 +74,7 @@ export function isSystemClutter(name: string): boolean {
   return SYSTEM_NAMES.has(n) || n.startsWith('ntuser.dat') || n.startsWith('~$');
 }
 
+/** «nome (2).ext», «nome (3).ext»…: il primo nome libero nella cartella (mai sovrascrivere). */
 export function freeName(exists: (name: string) => boolean, name: string): string {
   if (!exists(name)) return name;
   const ext = extname(name); // «.txt», oppure vuoto (anche per «.gitignore»)
