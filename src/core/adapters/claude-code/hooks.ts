@@ -116,8 +116,10 @@ export function toolAction(tool: string, input: unknown, cwd: string): ActionDes
     case 'PowerShell': {
       const command = str(p.command);
       if (!command) return null;
+      // Il comando INTERO va alla policy: tagliato a 1000 caratteri, un inizio innocuo nascondeva la coda
+      // (`echo` + 1.100 caratteri + `&& rm -rf …` passava come un `echo`). Log, eventi e approvazioni tagliano da sé.
       const git = /^\s*git\s+(.*)$/is.exec(command);
-      return git ? { kind: 'git', target: (git[1] ?? '').slice(0, 1000) } : { kind: 'shell.exec', target: command.slice(0, 1000) };
+      return git ? { kind: 'git', target: git[1] ?? '' } : { kind: 'shell.exec', target: command };
     }
     case 'Write':
     case 'Edit':

@@ -2,10 +2,10 @@
 // tabelle delle transizioni di task e istanze, policy delle azioni, audit log a catena di hash,
 // coda delle approvazioni, riduttore dello stato per agenti/task/Director/approvazioni.
 import { afterEach, describe, expect, it } from 'vitest';
-import { createApprovalQueue } from '../../src/core/approvals/index.ts';
+import { APPROVAL_TARGET_MAX, approvalTarget, createApprovalQueue } from '../../src/core/approvals/index.ts';
 import { auditHash, createAuditLog } from '../../src/core/audit/index.ts';
 import { parseAgentPlan } from '../../src/core/director/index.ts';
-import { createActionPolicy } from '../../src/core/policy/index.ts';
+import { createActionPolicy, SHELL_MAX_CHARS } from '../../src/core/policy/index.ts';
 import { createStateStore, emptyDomainCounts } from '../../src/core/state/index.ts';
 import {
   canAgentTransition,
@@ -219,6 +219,22 @@ describe('policy: modalità fiducia e percorsi custoditi (P-102)', () => {
     expect(cls('shell.exec', 'npm test && python x.py', true)).toBe('allow');
     expect(cls('shell.exec', 'npm test && copy a C:\\VISIONE\\data\\b', true)).toBe('approval');
   });
+
+  it('`&` singolo separa i comandi (cmd.exe e bash): un inizio in elenco non copre il resto', () => {
+    expect(cls('shell.exec', 'echo ciao & del /s /q C:\\Users\\prova\\Documents', false)).toBe('approval');
+    expect(cls('shell.exec', 'npm test & calc.exe', false)).toBe('approval');
+    expect(cls('shell.exec', 'echo ciao & git push origin main', false)).toBe('block');
+    expect(cls('git', 'status & del /q C:\\Altro', false)).toBe('approval');
+    // Le redirezioni innocue restano innocue: `2>&1` e `&> /dev/null` non diventano pezzi della catena.
+    expect(cls('shell.exec', 'npm test 2>&1 | findstr FAIL', false)).toBe('allow');
+    expect(cls('shell.exec', 'npm test &> /dev/null', false)).toBe('allow');
+  });
+
+  it('un comando lunghissimo non si classifica da solo: serve il proprietario, anche in fiducia', () => {
+    const lungo = `echo ${'a'.repeat(SHELL_MAX_CHARS)} && rm -rf ~/Documenti`;
+    for (const trusted of [false, true]) expect(verdict('shell.exec', lungo, trusted)).toMatchObject({ class: 'approval', rule: 'shell:long' });
+    expect(verdict('shell.exec', `echo ${'a'.repeat(1_100)} && rm -rf ~/Documenti`, false)).toMatchObject({ class: 'approval', rule: 'shell:other' });
+  });
 });
 
 describe('audit log a catena di hash', () => {
@@ -263,6 +279,23 @@ describe('coda delle approvazioni', () => {
     expect(types.filter((t) => t === 'approval.granted')).toHaveLength(1);
     expect(h.events.find((e) => e.type === 'approval.requested')?.correlationId).toBe('corr-appr-1');
     expect(audit.list(10).map((e) => `${e.action}:${e.decision}`)).toEqual(['approval.request:fs.write:pending', 'approval.decide:fs.write:granted', 'approval.request:fs.write:pending']);
+  });
+
+  it('bersagli oltre 1000 caratteri: l\'approvazione vale per il comando intero, non per chi ha lo stesso inizio', () => {
+    const h = harness();
+    const q = createApprovalQueue({ db: h.db, events: h.emitter, audit: createAuditLog(h.db) });
+    const inizio = `echo ${'a'.repeat(1_100)}`;
+    const buono = `${inizio} && npm test`;
+    const cattivo = `${inizio} && del /q C:\\Altro`;
+    const { approval } = q.request({ kind: 'shell.exec', target: buono, reason: 'comando lungo', requestedBy: 'agent:a1', correlationId: 'corr-appr-2' });
+    expect(approval.target).toHaveLength(APPROVAL_TARGET_MAX);
+    expect(approval.target).toBe(approvalTarget(buono));
+    expect(q.request({ kind: 'shell.exec', target: buono, reason: 'di nuovo', requestedBy: 'agent:a1', correlationId: 'corr-appr-3' }).created).toBe(false);
+    q.decide(approval.id, 'grant', 'owner');
+    expect(q.isGranted('shell.exec', buono)).toBe(true);
+    expect(q.isGranted('shell.exec', cattivo)).toBe(false);
+    // Fino a 1000 caratteri il bersaglio resta quello vero (le righe già registrate continuano a valere).
+    expect(approvalTarget('C:\\fuori\\x.txt')).toBe('C:\\fuori\\x.txt');
   });
 });
 
