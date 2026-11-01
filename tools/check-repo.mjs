@@ -1,9 +1,10 @@
 // Igiene del repository, senza dipendenze: `node tools/check-repo.mjs`.
 // - nessun segreto nei file versionati o da versionare;
 // - nessun file .env versionato;
-// - nessun remoto Git tranne `origin` sul repository pubblico (P-107af; prima P-3: Git solo locale).
+// - nessun remoto Git tranne `origin` sul repository pubblico (P-107af; prima P-3: Git solo locale), nella copia
+//   interna: in un clone o in un fork della copia pubblica (CI, contributori) i remoti sono liberi.
 import { execFileSync } from 'node:child_process';
-import { readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -55,15 +56,26 @@ for (const file of listed) {
 }
 
 // P-107af: l'unico remoto ammesso è il repository pubblico scelto dal proprietario (25/10/2026); ci va solo il
-// ramo `pubblico`, istantanee senza le note interne.
+// ramo `pubblico`, istantanee senza le note interne. Il controllo serve alla copia interna, quella con le note
+// (stesso segnale di tools/check-docs.mjs): in un clone o in un fork della copia pubblica non c'è nulla da
+// proteggere, e un fork con `origin` sul proprio account o un remoto `upstream` facevano fallire `npm run check`.
+const internal = existsSync(join(root, 'JARVIS_EDITION_PROGRESS.md'));
 const PUBLIC = 'https://github.com/arthadal/VISIONE-AI.git';
-for (const name of git('remote').split('\n').filter(Boolean)) {
-  const url = git('remote', 'get-url', name).trim();
-  if (name !== 'origin' || url !== PUBLIC) problems.push(`remoto Git non ammesso: ${name} ${url} (solo origin ${PUBLIC})`);
+/** Stesso repository a meno di maiuscole, `.git` finale, barra finale e forma HTTPS/SSH. */
+const repoId = (url) => url.trim().toLowerCase()
+  .replace(/^git@github\.com:/, 'github.com/')
+  .replace(/^(?:https?|ssh|git):\/\/(?:[^@/]+@)?/, '')
+  .replace(/\/+$/, '')
+  .replace(/\.git$/, '');
+if (internal) {
+  for (const name of git('remote').split('\n').filter(Boolean)) {
+    const url = git('remote', 'get-url', name).trim();
+    if (name !== 'origin' || repoId(url) !== repoId(PUBLIC)) problems.push(`remoto Git non ammesso: ${name} ${url} (solo origin ${PUBLIC})`);
+  }
 }
 
 if (problems.length > 0) {
   console.error(`check-repo: ${problems.length} problemi\n- ${problems.join('\n- ')}`);
   process.exit(1);
 }
-console.log(`check-repo: ok (${scanned} file senza segreti, nessun .env, solo il remoto pubblico)`);
+console.log(`check-repo: ok (${scanned} file senza segreti, nessun .env, ${internal ? 'solo il remoto pubblico' : 'remoti liberi nella copia pubblica'})`);
