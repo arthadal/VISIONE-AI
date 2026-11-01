@@ -100,6 +100,14 @@ export function statusLineUsage(p: Json): AgentUsage | null {
   return Object.keys(usage).length > 0 ? (usage as AgentUsage) : null;
 }
 
+/** Strumenti che `toolAction` traduce in un'azione: senza i loro campi (comando, percorso, URL) la policy non decide. */
+const GATED_TOOLS: ReadonlySet<string> = new Set(['Bash', 'PowerShell', 'Write', 'Edit', 'MultiEdit', 'NotebookEdit', 'Read', 'WebFetch']);
+
+/** Lo strumento passa dalla policy di VISIONE: se `toolAction` non ne ricava l'azione, la richiesta va negata. */
+export function isGatedTool(tool: string): boolean {
+  return GATED_TOOLS.has(tool);
+}
+
 /**
  * Strumento del motore → azione da classificare dalla policy di VISIONE (P-39). Gli strumenti che
  * non toccano file, comandi o rete non hanno un'azione (decide il motore con i suoi permessi).

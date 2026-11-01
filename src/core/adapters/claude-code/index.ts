@@ -11,7 +11,7 @@ import { ensureHookShim, type ManagedProcess } from '../../runtime/index.ts';
 import { AdapterError } from '../errors.ts';
 import type { ActionGate, AdapterContext, AdapterModelOption, AdapterProbe, AgentAdapter, TurnOutcome } from '../index.ts';
 import { formatProbeCommand } from '../probe-command.ts';
-import { buildClaudeSettings, hookResponses, mapHook, toolAction } from './hooks.ts';
+import { buildClaudeSettings, hookResponses, isGatedTool, mapHook, toolAction } from './hooks.ts';
 import { detectLimit, screenText, type LimitHit } from './limit.ts';
 import { screenRows, selectedOption } from './screen.ts';
 import { claudeSetupItems, parseAuthStatus } from './setup.ts';
@@ -49,6 +49,8 @@ const CAPABILITIES: ReadonlySet<AgentCapability> = new Set([
 const STRIP = ['CLAUDE', 'CLAUDECODE'];
 const KEEP = ['CLAUDE_CONFIG_DIR', 'CLAUDE_CODE_OAUTH_TOKEN', 'CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX'];
 const PERMISSION_MODES = new Set(['default', 'acceptEdits', 'plan']);
+/** Risposta a un PreToolUse che la policy non può leggere (nome o campi mancanti): mai lasciato passare. */
+const UNCHECKED_TOOL = 'richiesta dello strumento illeggibile per la policy di VISIONE (dati mancanti o troppo grandi): azione negata per sicurezza';
 /**
  * Potenza del motore (P-83): `--effort` è reale e documentato dall'help della CLI installata
  * 2.1.289 («Effort level for the current session (low, medium, high, xhigh, max)»).
@@ -340,10 +342,15 @@ export function createClaudeCodeAdapter(opts: ClaudeAdapterOptions): AgentAdapte
           case 'PreToolUse': {
             if (current.halt) return hookResponses.halt(current.halt);
             const p = (req.payload ?? {}) as { tool_name?: unknown; tool_input?: unknown };
-            const decision = opts.decideTool?.(ctx.instance.agentId, String(p.tool_name ?? ''), p.tool_input) ?? null;
+            const tool = typeof p.tool_name === 'string' ? p.tool_name : '';
+            const decision = opts.decideTool?.(ctx.instance.agentId, tool, p.tool_input) ?? null;
             if (decision?.decision === 'deny') return hookResponses.deny(decision.reason ?? 'negato dalla policy di VISIONE');
-            const action = opts.decideAction ? toolAction(String(p.tool_name ?? ''), p.tool_input, ctx.workspaceDir) : null;
-            const gate = action ? opts.decideAction?.(ctx.instance.agentId, action) ?? null : null;
+            if (!opts.decideAction) return null;
+            const action = toolAction(tool, p.tool_input, ctx.workspaceDir);
+            // Fail-closed: senza il nome dello strumento, o senza i campi che la policy legge (payload illeggibile o
+            // ridotto dallo shim perché troppo grande), non si decide alla cieca.
+            if (!action) return tool === '' || isGatedTool(tool) ? hookResponses.deny(UNCHECKED_TOOL) : null;
+            const gate = opts.decideAction(ctx.instance.agentId, action);
             return gate?.decision === 'deny' ? hookResponses.deny(gate.reason) : null;
           }
           case 'PostToolUse':
@@ -378,7 +385,9 @@ export function createClaudeCodeAdapter(opts: ClaudeAdapterOptions): AgentAdapte
           VISIONE_AGENT_ID: ctx.instance.agentId,
           VISIONE_AGENT_DIR: ctx.agentDir,
           VISIONE_AGENT_TOKEN: token,
-          VISIONE_HOOK_PIPE: ctx.hooks.address
+          VISIONE_HOOK_PIPE: ctx.hooks.address,
+          // Con la policy attiva lo shim nega PreToolUse se VISIONE non risponde (fail-closed, hookpipe.ts).
+          ...(opts.decideAction ? { VISIONE_HOOK_FAIL_CLOSED: '1' } : {})
         },
         // TERM: su Windows node-pty ignora `name`, e senza un terminale Unicode riconosciuto (VISIONE
         // avviata dall'icona) il TUI disegna la casella con `>` invece di `❯`: ogni turno aspettava
