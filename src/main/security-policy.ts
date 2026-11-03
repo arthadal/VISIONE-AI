@@ -80,7 +80,6 @@ export function isAllowedRendererPermission(permission: string, trusted: boolean
   return permission === 'clipboard-sanitized-write';
 }
 
-/** Content-Security-Policy del renderer. In sviluppo consente solo il websocket HMR locale. */
 /**
  * Browser di VISIONE (12/10/2026, richiesta del proprietario): la partizione separata delle sue pagine
  * (cookie e accessi a parte, nessun contatto con la sessione di VISIONE).
@@ -103,6 +102,7 @@ export function isAllowedBrowserPermission(permission: string): boolean {
   return permission === 'fullscreen' || permission === 'clipboard-sanitized-write';
 }
 
+/** Content-Security-Policy del renderer. In sviluppo consente solo il websocket HMR locale. */
 export function contentSecurityPolicy(dev: boolean): string {
   return [
     "default-src 'none'",

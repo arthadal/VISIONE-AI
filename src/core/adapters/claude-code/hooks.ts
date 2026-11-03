@@ -100,6 +100,14 @@ export function statusLineUsage(p: Json): AgentUsage | null {
   return Object.keys(usage).length > 0 ? (usage as AgentUsage) : null;
 }
 
+/** Strumenti che `toolAction` traduce in un'azione: senza i loro campi (comando, percorso, URL) la policy non decide. */
+const GATED_TOOLS: ReadonlySet<string> = new Set(['Bash', 'PowerShell', 'Write', 'Edit', 'MultiEdit', 'NotebookEdit', 'Read', 'WebFetch']);
+
+/** Lo strumento passa dalla policy di VISIONE: se `toolAction` non ne ricava l'azione, la richiesta va negata. */
+export function isGatedTool(tool: string): boolean {
+  return GATED_TOOLS.has(tool);
+}
+
 /**
  * Strumento del motore → azione da classificare dalla policy di VISIONE (P-39). Gli strumenti che
  * non toccano file, comandi o rete non hanno un'azione (decide il motore con i suoi permessi).
@@ -116,8 +124,10 @@ export function toolAction(tool: string, input: unknown, cwd: string): ActionDes
     case 'PowerShell': {
       const command = str(p.command);
       if (!command) return null;
+      // Il comando INTERO va alla policy: tagliato a 1000 caratteri, un inizio innocuo nascondeva la coda
+      // (`echo` + 1.100 caratteri + `&& rm -rf …` passava come un `echo`). Log, eventi e approvazioni tagliano da sé.
       const git = /^\s*git\s+(.*)$/is.exec(command);
-      return git ? { kind: 'git', target: (git[1] ?? '').slice(0, 1000) } : { kind: 'shell.exec', target: command.slice(0, 1000) };
+      return git ? { kind: 'git', target: git[1] ?? '' } : { kind: 'shell.exec', target: command };
     }
     case 'Write':
     case 'Edit':

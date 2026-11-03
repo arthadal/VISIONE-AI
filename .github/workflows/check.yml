@@ -1,0 +1,34 @@
+# Controlli di VISIONE su ogni push su main e su ogni pull request: tipi, igiene del repository, test unitari e
+# d'integrazione, documenti (`npm run check`, lo stesso comando che deve essere verde in locale). Gira su Windows,
+# la piattaforma dell'app: PTY, named pipe e percorsi sono quelli veri.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      # I test girano in Node, non in Electron: il binario di Electron non serve (solo i suoi tipi).
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      # Il repository usa a capo LF (tools/check-repo.mjs li controlla): niente conversione CRLF del Git di Windows.
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check

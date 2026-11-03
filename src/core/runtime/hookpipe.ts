@@ -10,6 +10,12 @@ import type { Logger } from '../../shared/node/logging.ts';
 
 export const HOOK_FRAME_MAX = 256 * 1024;
 export const HOOK_PROTOCOL_VERSION = 1;
+/** Lo shim legge da stdin fino a qui (poi riduce il payload): tagliato prima del parse, il JSON non si leggerebbe più. */
+export const HOOK_INPUT_MAX = 64 * 1024 * 1024;
+/** Campo di `tool_input` tenuto quando il payload va ridotto (contenuti voluminosi oltre: tolti). */
+export const HOOK_FIELD_MAX = 64 * 1024;
+/** Il gestore non ha risposto in tempo: la risposta è `ok: false`, non «nessuna decisione». */
+const HANDLER_TIMEOUT = Symbol('timeout');
 
 export interface HookRequest {
   readonly agentId: string;
@@ -71,12 +77,19 @@ export function createHookServer(opts: { address: string; log: Logger; responseT
     try {
       const response = await Promise.race([
         Promise.resolve(agent.handler({ agentId: frame.agentId, event: frame.event.slice(0, 64), payload: frame.payload ?? null })),
-        new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), responseTimeoutMs); })
+        new Promise<typeof HANDLER_TIMEOUT>((resolve) => { timer = setTimeout(() => resolve(HANDLER_TIMEOUT), responseTimeoutMs); })
       ]);
-      reply(socket, { ok: true, response: response ?? null });
+      // Timeout ed errori del gestore sono `ok: false`, distinti da «nessuna decisione» (`response: null`): con la
+      // policy attiva lo shim nega PreToolUse invece di lasciar passare un'azione non controllata.
+      if (response === HANDLER_TIMEOUT) {
+        opts.log.warn('gestore di un hook senza risposta in tempo', { agentId: frame.agentId, event: frame.event, timeoutMs: responseTimeoutMs });
+        reply(socket, { ok: false, error: 'timeout' });
+      } else {
+        reply(socket, { ok: true, response: response ?? null });
+      }
     } catch (err) {
       opts.log.error('errore nel gestore di un hook', { agentId: frame.agentId, event: frame.event, err });
-      reply(socket, { ok: true, response: null });
+      reply(socket, { ok: false, error: 'errore del gestore' });
     } finally {
       clearTimeout(timer);
     }
@@ -150,34 +163,78 @@ export function createHookServer(opts: { address: string; log: Logger; responseT
   };
 }
 
-/** Shim eseguito dalla CLI per ogni hook: `node visione-hook.cjs <Evento>`. Esce sempre con 0. */
+/**
+ * Shim eseguito dalla CLI per ogni hook: `node visione-hook.cjs <Evento>`. Esce sempre con 0.
+ * Con la policy di VISIONE attiva (`VISIONE_HOOK_FAIL_CLOSED=1`, lo mette l'adapter) un `PreToolUse` che non riceve
+ * una risposta valida (pipe assente, timeout, token rifiutato, errore) NEGA lo strumento: un'azione non
+ * controllata non passa. Un payload troppo grande si riduce tenendo i campi che la policy legge, mai svuotato.
+ */
 export const HOOK_SHIM_SOURCE = `'use strict';
 // VISIONE — shim degli hook (generato dal core, non modificare). Legge il JSON dell'hook da stdin,
 // lo inoltra a VISIONE sulla pipe locale con il token dell'agente e stampa la risposta, se c'è.
-// Se VISIONE non risponde entro il tempo previsto esce 0 senza output: l'agente non si blocca.
+// Se VISIONE non risponde entro il tempo previsto esce 0 senza output: l'agente non si blocca. Con la policy
+// attiva (VISIONE_HOOK_FAIL_CLOSED=1) PreToolUse invece nega: un'azione non controllata non passa.
 const net = require('net');
 const event = String(process.argv[2] || 'unknown');
 const pipe = process.env.VISIONE_HOOK_PIPE;
 const agentId = process.env.VISIONE_AGENT_ID;
 const token = process.env.VISIONE_AGENT_TOKEN;
+const failClosed = event === 'PreToolUse' && process.env.VISIONE_HOOK_FAIL_CLOSED === '1';
 // La statusLine va disegnata in fretta: attesa più breve (MUNDER_CLI_RUNTIME §10).
 const timeoutMs = event === 'StatusLine' ? 1500 : Number(process.env.VISIONE_HOOK_TIMEOUT_MS || 5000);
 const MAX = ${HOOK_FRAME_MAX - 4096};
+// Il JSON dell'hook si legge tutto (fino a un limite largo) e si riduce dopo: tagliato prima, non si leggerebbe.
+const INPUT_MAX = ${HOOK_INPUT_MAX};
+const FIELD_MAX = ${HOOK_FIELD_MAX};
 let input = '';
 let sent = false;
 function done(out) {
   if (out) process.stdout.write(out);
   process.exit(0);
 }
+function fail(reason) {
+  if (!failClosed) return done('');
+  done(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny',
+    permissionDecisionReason: 'Controllo di VISIONE non disponibile (' + reason + '): azione negata per sicurezza. Riprova tra poco.' } }));
+}
+// Payload troppo grande: restano i campi che la policy legge (nome dello strumento, percorsi, comando) e si
+// tolgono solo i contenuti voluminosi (content, new_string...). Mai un payload vuoto.
+function reduce(p) {
+  const out = { truncated: true };
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return out;
+  for (const k of Object.keys(p)) {
+    const v = p[k];
+    if (k === 'tool_input' && v && typeof v === 'object' && !Array.isArray(v)) {
+      const kept = {};
+      for (const f of Object.keys(v)) {
+        const s = JSON.stringify(v[f]);
+        if (s === undefined || s.length <= FIELD_MAX) kept[f] = v[f];
+      }
+      out.tool_input = kept;
+    } else if (typeof v === 'string') {
+      out[k] = v.length <= FIELD_MAX ? v : v.slice(0, FIELD_MAX);
+    } else if (typeof v !== 'object' || v === null) {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+function frameOf(payload) {
+  return JSON.stringify({ v: ${HOOK_PROTOCOL_VERSION}, agentId: agentId, token: token, event: event, payload: payload });
+}
 function send() {
   if (sent) return;
   sent = true;
-  if (!pipe || !agentId || !token) return done('');
+  if (!pipe || !agentId || !token) return fail('ambiente di VISIONE assente');
   let payload = null;
   try { payload = input.trim() ? JSON.parse(input) : null; } catch (e) { payload = { raw: input.slice(0, 4000) }; }
-  let frame = JSON.stringify({ v: ${HOOK_PROTOCOL_VERSION}, agentId: agentId, token: token, event: event, payload: payload });
-  if (frame.length > MAX) frame = JSON.stringify({ v: ${HOOK_PROTOCOL_VERSION}, agentId: agentId, token: token, event: event, payload: { truncated: true } });
-  const timer = setTimeout(function () { done(''); }, timeoutMs);
+  let frame = frameOf(payload);
+  if (Buffer.byteLength(frame) > MAX) frame = frameOf(reduce(payload));
+  if (Buffer.byteLength(frame) > MAX) {
+    const tool = payload && typeof payload.tool_name === 'string' ? payload.tool_name.slice(0, 200) : null;
+    frame = frameOf({ truncated: true, tool_name: tool });
+  }
+  const timer = setTimeout(function () { fail('nessuna risposta'); }, timeoutMs);
   const sock = net.connect(pipe);
   let buf = '';
   sock.setEncoding('utf8');
@@ -187,15 +244,16 @@ function send() {
     const nl = buf.indexOf('\\n');
     if (nl < 0) return;
     clearTimeout(timer);
-    let out = '';
-    try { const r = JSON.parse(buf.slice(0, nl)); if (r && r.ok && r.response) out = JSON.stringify(r.response); } catch (e) { out = ''; }
+    let r = null;
+    try { r = JSON.parse(buf.slice(0, nl)); } catch (e) { r = null; }
     sock.destroy();
-    done(out);
+    if (!r || r.ok !== true) return fail(r && typeof r.error === 'string' ? r.error.slice(0, 200) : 'risposta illeggibile');
+    done(r.response ? JSON.stringify(r.response) : '');
   });
-  sock.on('error', function () { clearTimeout(timer); done(''); });
+  sock.on('error', function () { clearTimeout(timer); fail('pipe non raggiungibile'); });
 }
 process.stdin.setEncoding('utf8');
-process.stdin.on('data', function (d) { if (input.length < MAX) input += d; });
+process.stdin.on('data', function (d) { if (input.length < INPUT_MAX) input += d; });
 process.stdin.on('end', send);
 process.stdin.on('error', send);
 setTimeout(send, timeoutMs).unref();

@@ -247,6 +247,12 @@ describe('adapter claude-code', () => {
     expect(toolAction('TodoWrite', {}, 'C:\\w')).toBeNull();
   }, 40_000);
 
+  it('toolAction: il comando arriva intero alla policy, anche oltre 1000 caratteri', () => {
+    const lungo = `echo ${'a'.repeat(1_100)} && rm -rf ~/Documenti`;
+    expect(toolAction('Bash', { command: lungo }, 'C:\\w')).toEqual({ kind: 'shell.exec', target: lungo });
+    expect(toolAction('Bash', { command: `git log ${'a'.repeat(1_100)} & calc.exe` }, 'C:\\w')?.target).toHaveLength(1_100 + 15);
+  });
+
   it('testo dello schermo: sequenze ANSI, OSC e spazi rimossi', () => {
     const raw = '\x1b]0;claude\x07\x1b[14;2H❯\x1b[1CNo,\x1b[1Cexit\x1b[m\x1b[15;4HYes,\x1b[1CI\x1b[1Ctrust\x1b[1Cthis\x1b[1Cfolder\x1b[38;2;153;153;153m';
     expect(screenText(raw)).toBe('❯no,exityes,itrustthisfolder');

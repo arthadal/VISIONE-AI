@@ -1,0 +1,56 @@
+name: Segnala un problema
+description: Qualcosa non funziona in VISIONE (voce, motori IA, chat, pannelli, installazione).
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Grazie! Più dettagli metti, più in fretta si trova la causa. Le issue sono pubbliche, non incollare chiavi o dati personali.
+  - type: input
+    id: versione
+    attributes:
+      label: Versione
+      description: È scritta in alto, accanto al nome VISIONE.
+      placeholder: 1.1.0-beta.41
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Voce (hey VISIONE, ascolto, voce sintetica)
+        - Motori IA (Claude Code, OpenCode, Ollama, altri)
+        - Chat, Director e agenti
+        - Interfaccia e pannelli
+        - Installazione e procedura guidata
+        - Altro
+    validations:
+      required: true
+  - type: textarea
+    id: passi
+    attributes:
+      label: Cosa hai fatto
+      description: I passi per arrivare al problema.
+      placeholder: |
+        1. Ho detto «hey VISIONE»
+        2. Ho chiesto...
+    validations:
+      required: true
+  - type: textarea
+    id: atteso
+    attributes:
+      label: Cosa ti aspettavi
+    validations:
+      required: true
+  - type: textarea
+    id: successo
+    attributes:
+      label: Cosa è successo invece
+      description: Il messaggio d'errore esatto, se c'è (per esempio «nessuna risposta dal core entro 6000 ms»), e una schermata se puoi.
+    validations:
+      required: true
+  - type: textarea
+    id: pacchetto
+    attributes:
+      label: Pacchetto «Segnala un problema»
+      description: Se puoi, allega il pacchetto creato da «Segnala un problema», nella cartella %APPDATA%\VISIONE\segnalazioni\. Guardalo prima di allegarlo, la issue è pubblica.

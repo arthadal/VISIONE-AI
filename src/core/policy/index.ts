@@ -83,11 +83,13 @@ const SHELL_DOWNLOAD = /\b(curl|wget|Invoke-WebRequest|iwr|Start-BitsTransfer)\b
 const SHELL_INSTALL = /\b(npm|pnpm|yarn)\s+(i|install|add)\b|\bpip\d*\s+install\b|\bwinget\s+install\b|\bchoco\s+install\b/i;
 /**
  * Comandi composti (P-102): l'elenco dei consentiti guarda l'inizio di un comando, quindi una catena
- * (`a && b`, `a; b`, `a | b`) vale solo se OGNI pezzo è consentito da solo. Le redirezioni verso un
+ * (`a && b`, `a; b`, `a | b`, `a & b`) vale solo se OGNI pezzo è consentito da solo. Le redirezioni verso un
  * file sono scritture (approvazione); quelle innocue verso il nulla o tra canali si ignorano. I filtri
  * di sola lettura in coda a una pipe (`| tail`, `| grep`) non cambiano il verdetto.
+ * `&` da solo separa due comandi in cmd.exe e in bash (in bash manda il primo in background): senza di lui
+ * `echo ciao & del /s /q …` passava come un `echo`. `2>&1` resta innocuo perché HARMLESS_REDIRECT lo toglie prima.
  */
-const CHAIN_SPLIT = /&&|\|\||[;|\n]/;
+const CHAIN_SPLIT = /&&|\|\||[;|&\r\n]/;
 const HARMLESS_REDIRECT = /\d?>&\d|\d?>>?\s*(?:\/dev\/null|nul|\$null)(?=\s|$)/gi;
 const SUBSHELL = /`|\$\(/;
 const PIPE_FILTER = /^\s*(head|tail|grep|wc|sort|uniq|cut|findstr|more|Select-Object|Select-String|Measure-Object|Format-List|Format-Table|Out-String)\b/i;
@@ -97,6 +99,12 @@ const DEFAULT_SHELL_ALLOW: readonly RegExp[] = [
   /^\s*git\s+(status|diff|log|add|commit|branch|stash|show)\b/i,
   /^\s*(dir|ls|type|cat|echo|pwd|cd)\b/i
 ];
+/**
+ * Oltre questa lunghezza un comando non si classifica da solo: chiede sempre il proprietario, anche in fiducia.
+ * Un comando enorme può nascondere una coda pericolosa dopo un inizio innocuo, e le espressioni regolari su
+ * centinaia di KB costano.
+ */
+export const SHELL_MAX_CHARS = 20_000;
 
 /**
  * Regole «con approvazione» che la modalità fiducia (P-102) consente da sola: lavoro ordinario di uno
@@ -159,6 +167,7 @@ export function createActionPolicy(opts: ActionPolicyOptions = {}): ActionPolicy
   };
   const RANK: Record<ActionClass, number> = { allow: 0, approval: 1, block: 2 };
   const shellVerdict = (target: string): PolicyDecision => {
+    if (target.length > SHELL_MAX_CHARS) return decide('approval', 'shell:long', `comando troppo lungo per il controllo automatico (${target.length} caratteri): ${target}`);
     if (SHELL_BLOCKED.test(target)) return decide('block', 'shell:blocked', `comando vietato: ${target}`);
     if (CREDENTIAL_PATH.test(target)) return decide('block', 'shell:credentials', `comando su file di credenziali: ${target}`);
     if (SHELL_INSTALL.test(target)) return decide('approval', 'shell:install', `installazione di pacchetti: ${target}`);

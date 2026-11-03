@@ -2,6 +2,7 @@
 // approvazione" che attendono la decisione del proprietario. Unico proprietario della tabella
 // `approvals`. Una richiesta uguale a una già aperta (stesso tipo, bersaglio e task) la riusa; una
 // decisione è definitiva e idempotente. Riga, evento e audit nella stessa transazione.
+import { createHash } from 'node:crypto';
 import type { Approval, ApprovalStatus } from '../../shared/contracts/index.ts';
 import { ulid } from '../../shared/lib/ulid.ts';
 import type { AuditLog } from '../audit/index.ts';
@@ -52,6 +53,21 @@ function toApproval(r: Row): Approval {
 
 const SOURCE = { kind: 'visione', id: 'approvals' } as const;
 
+/** Lunghezza massima del bersaglio registrato (colonna, eventi e interfaccia). */
+export const APPROVAL_TARGET_MAX = 1000;
+
+/**
+ * Bersaglio come si registra e si confronta. Fino a 1000 caratteri è quello vero; oltre, l'inizio più l'impronta
+ * SHA-256 dell'intero: così l'approvazione di un comando lungo non vale per un altro con lo stesso inizio
+ * (prima si confrontavano solo i primi 1000 caratteri).
+ */
+export function approvalTarget(target: string): string {
+  if (target.length <= APPROVAL_TARGET_MAX) return target;
+  const digest = createHash('sha256').update(target).digest('hex');
+  const tail = `…#${digest}`;
+  return `${target.slice(0, APPROVAL_TARGET_MAX - tail.length)}${tail}`;
+}
+
 export function createApprovalQueue(deps: { db: Db; events: EventEmitter; audit: AuditLog; now?: () => number }): ApprovalQueue {
   const { db, events, audit } = deps;
   const now = deps.now ?? Date.now;
@@ -65,7 +81,7 @@ export function createApprovalQueue(deps: { db: Db; events: EventEmitter; audit:
   return {
     request(req) {
       return db.transaction(() => {
-        const target = req.target.slice(0, 1000);
+        const target = approvalTarget(req.target);
         const existing = openOne.get(req.kind, target, req.taskId ?? '');
         if (existing) return { approval: toApproval(existing), created: false };
         const id = ulid(now());
@@ -110,7 +126,7 @@ export function createApprovalQueue(deps: { db: Db; events: EventEmitter; audit:
     },
 
     isGranted(kind, target) {
-      return granted.get(kind, target.slice(0, 1000)) !== undefined;
+      return granted.get(kind, approvalTarget(target)) !== undefined;
     },
 
     pendingCount() {
