@@ -3,11 +3,15 @@ import { utilityProcess } from 'electron';
 import { constants, setPriority } from 'node:os';
 import type { MainToCoreFrameBody } from '../shared/contracts/index.ts';
 import { FRAME_VERSION } from '../shared/contracts/index.ts';
+import type { Logger } from '../shared/node/logging.ts';
+import { keepFullSpeed, logQos } from '../shared/node/qos.ts';
 import type { CoreProcessFactory } from './supervisor.ts';
 
 export interface UtilityCoreOptions {
   entry: string;
   env: Record<string, string>;
+  /** Registro per l'esito della richiesta a Windows di non rallentare il core (issue #1, idea 8). */
+  log?: Pick<Logger, 'info' | 'warn'>;
 }
 
 export function createUtilityCoreFactory(opts: UtilityCoreOptions): CoreProcessFactory {
@@ -38,6 +42,7 @@ export function createUtilityCoreFactory(opts: UtilityCoreOptions): CoreProcessF
         } catch {
           /* priorità non cambiata: il core funziona lo stesso */
         }
+        if (child.pid && opts.log) keepFullSpeed([child.pid], logQos(opts.log, 'core'));
         listener(child.pid ?? 0);
       }),
       onMessage: (listener) => child.on('message', listener),

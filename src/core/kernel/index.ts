@@ -639,7 +639,7 @@ export function startCore(deps: CoreDeps): CoreHandle {
   const director = createDirector({
     engine, agents: manager, approvals, policy, audit, events, bus, log: log.child('director'),
     agentsDir: paths.agentsDir, workspaceDir: paths.workspaceDir,
-    limitFallbackAgentId: limitFallback.enabled ? limitFallback.agentId : null,
+    limitFallbackAgentId: limitFallback.enabled ? limitFallback.agentId : null, journal,
     defaultPlannerAgentId: () => plannerDefault,
     reply: (to, act, body) => {
       channel?.send({ conversationId: to.conversationId, inReplyTo: to.id, from: 'director', to: to.from, act, subject: `Re: ${to.subject}`.slice(0, 200), body, taskId: to.taskId, hops: Math.min(to.hops + 1, 12), requiresReply: false });
@@ -844,6 +844,8 @@ export function startCore(deps: CoreDeps): CoreHandle {
   // Mappa del codice (P-107l): le cartelle degli agenti attivi si indicizzano poco dopo l'avvio, in
   // background, così il primo compito trova già la mappa.
   const codeMapWarmup = setTimeout(() => {
+    // Dopo un errore fatale il database è chiuso e lo spegnimento ordinato (che cancella il timer) non c'è stato.
+    if (phase !== 'running') return;
     for (const def of manager.active()) codeMap.ensureFresh(resolveWorkspace(def, paths.workspaceDir));
   }, 5_000);
   codeMapWarmup.unref();
@@ -1015,6 +1017,19 @@ export function startCore(deps: CoreDeps): CoreHandle {
   telemetry.start();
   transport.send({ kind: 'ready', pid: deps.pid, coreVersion: deps.coreVersion, startupMs });
   log.info('core pronto', { pid: deps.pid, startupMs, schemaVersion: migration.to, recovered: unclean });
+
+  // Ciclo eventi fermo (tester, stable 38: «nessuna risposta dal core entro 6000 ms» su un comando voce che risponde
+  // subito): ogni blocco oltre 2 s finisce nel registro, così il pacchetto «Segnala un problema» lo mostra. Un
+  // salto molto più lungo è di solito il PC in sospensione.
+  let lastBeat = performance.now();
+  const stallWatch = setInterval(() => {
+    const t = performance.now();
+    const stalledMs = Math.round(t - lastBeat - 500);
+    lastBeat = t;
+    if (stalledMs > 2_000) log.warn('ciclo eventi del core fermo', { stalledMs, phase });
+  }, 500);
+  // unref: non tiene vivo il processo, che esce da sé dopo lo spegnimento.
+  stallWatch.unref();
 
   // Processi lasciati vivi da un avvio precedente caduto (P-32): dopo `ready`, per non ritardarlo.
   reconciling = runtime.reconcile().then(

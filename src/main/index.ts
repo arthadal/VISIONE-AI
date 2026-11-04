@@ -103,6 +103,7 @@ function run(): void {
   const link = createCoreLink({
     factory: createUtilityCoreFactory({
       entry: join(__dirname, 'core.js'),
+      log: log.child('qos'),
       env: coreEnv(process.env, { VISIONE_HOME: home, VISIONE_APP_VERSION: app.getVersion(), VISIONE_EDITION: edition, VISIONE_MAIN_PID: String(process.pid), VISIONE_LOCALE: app.getLocale() })
     }),
     config: loaded.config,

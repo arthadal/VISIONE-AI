@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AdapterError, buildClaudeArgs, createClaudeCodeAdapter, isClaudeModel, screenText, selectedOption } from '../../src/core/adapters/claude-code/index.ts';
 import { screenRows } from '../../src/core/adapters/claude-code/screen.ts';
-import { toolAction } from '../../src/core/adapters/claude-code/hooks.ts';
+import { buildClaudeSettings, supportsExecForm, toolAction } from '../../src/core/adapters/claude-code/hooks.ts';
 import type { ActionGate, AdapterContext } from '../../src/core/adapters/index.ts';
 import { createHookServer, hookPipeAddress, type HookServer } from '../../src/core/runtime/index.ts';
 import { adapterContext, createRuntimeHarness, definition, fakeCliEnv, writeShim } from '../adapter-harness.ts';
@@ -63,11 +63,13 @@ describe('adapter claude-code', () => {
     expect(s.events[0]).toEqual({ kind: 'session.started', engineSessionId: session.engineSessionId });
     // P-102: impostazioni accanto allo shim (cartella custodita), non nella cartella dell'agente.
     expect(existsSync(join(s.ctx.agentDir, 'settings.json'))).toBe(false);
-    const settings = JSON.parse(readFileSync(join(s.h.dir, 'runtime', 'shims', `settings-${s.ctx.instance.agentId}.json`), 'utf8')) as { hooks: Record<string, Array<{ matcher?: string; hooks: Array<{ command: string }> }>>; statusLine: { command: string } };
-    expect(Object.keys(settings.hooks).sort()).toEqual(['Notification', 'PostCompact', 'PostToolUse', 'PreCompact', 'PreToolUse', 'SessionStart', 'Stop', 'SubagentStop', 'UserPromptSubmit']);
+    const settings = JSON.parse(readFileSync(join(s.h.dir, 'runtime', 'shims', `settings-${s.ctx.instance.agentId}.json`), 'utf8')) as { hooks: Record<string, Array<{ matcher?: string; hooks: Array<{ command: string; args?: string[] }> }>>; statusLine: { command: string } };
+    expect(Object.keys(settings.hooks).sort()).toEqual(['Notification', 'PostCompact', 'PostToolUse', 'PostToolUseFailure', 'PreCompact', 'PreToolUse', 'SessionStart', 'Stop', 'SubagentStop', 'UserPromptSubmit']);
     expect(settings.hooks.PreToolUse?.[0]?.matcher).toBe('*');
-    expect(settings.hooks.Stop?.[0]?.hooks[0]?.command).toMatch(/^"[^"]+node(\.exe)?" "[^"]+visione-hook\.cjs" Stop$/);
-    expect(settings.statusLine.command).toMatch(/ StatusLine$/);
+    // CLI finta 2.1.286: exec form, node lanciato senza shell (vale anche senza Git Bash).
+    expect(settings.hooks.Stop?.[0]?.hooks[0]?.command).toMatch(/node(\.exe)?$/);
+    expect(settings.hooks.Stop?.[0]?.hooks[0]?.args).toEqual([expect.stringMatching(/visione-hook\.cjs$/), 'Stop']);
+    expect(settings.statusLine.command).toMatch(/^"[^"]+node(\.exe)?" "[^"]+visione-hook\.cjs" StatusLine$/);
     expect(readFileSync(join(s.ctx.agentDir, 'identity.md'), 'utf8')).toContain('Rispondi in italiano.');
     // Il processo è in PTY, di lunga durata, con agente/sessione/adapter distinti.
     const proc = s.h.runtime.list({ live: true })[0];
@@ -296,4 +298,26 @@ describe('adapter claude-code', () => {
     await s.adapter.start(s.ctx);
     expect(existsSync(join(s.h.dir, 'runtime', 'shims', 'visione-hook.cjs'))).toBe(true);
   }, 40_000);
+});
+
+describe('hook senza Git Bash (PowerShell)', () => {
+  it('exec form dalla 2.1.139; versione vecchia o illeggibile: forma con la shell', () => {
+    expect(supportsExecForm('2.1.309 (Claude Code)')).toBe(true);
+    expect(supportsExecForm('2.1.139')).toBe(true);
+    expect(supportsExecForm('2.2.0')).toBe(true);
+    expect(supportsExecForm('3.0.1')).toBe(true);
+    expect(supportsExecForm('2.1.138')).toBe(false);
+    expect(supportsExecForm('2.0.999')).toBe(false);
+    expect(supportsExecForm(null)).toBe(false);
+    expect(supportsExecForm('sconosciuta')).toBe(false);
+  });
+
+  it('exec form: percorsi con spazi e apostrofi passano intatti, senza virgolette', () => {
+    const node = "C:\\Program Files\\nodejs\\node.exe";
+    const shim = "C:\\Users\\D'Angelo\\AppData\\Roaming\\VISIONE\\runtime\\shims\\visione-hook.cjs";
+    const exec = buildClaudeSettings(node, shim, { execForm: true }) as { hooks: Record<string, Array<{ hooks: unknown[] }>> };
+    expect(exec.hooks.SessionStart?.[0]?.hooks[0]).toEqual({ type: 'command', command: node, args: [shim, 'SessionStart'] });
+    const shell = buildClaudeSettings(node, shim) as { hooks: Record<string, Array<{ hooks: unknown[] }>> };
+    expect(shell.hooks.SessionStart?.[0]?.hooks[0]).toEqual({ type: 'command', command: `"C:/Program Files/nodejs/node.exe" "C:/Users/D'Angelo/AppData/Roaming/VISIONE/runtime/shims/visione-hook.cjs" SessionStart` });
+  });
 });

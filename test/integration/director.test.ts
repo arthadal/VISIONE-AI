@@ -21,6 +21,60 @@ function stack(opts: Parameters<typeof createStack>[0] = {}): Stack {
 const corr = (id: string) => ({ correlationId: id, causationId: id });
 const tasksOf = (s: Stack, rootId: string): Task[] => s.engine.list({ rootId, limit: 50 }).filter((t) => t.kind !== 'goal').reverse();
 
+describe('Revisione: prima la prova, poi il fatto (issue #1, idea 6)', () => {
+  const review = async (s: Stack, work: string, check: string): Promise<Task[]> => {
+    const out = s.director.submit({
+      goal: 'Lavora e rivedi',
+      plan: { steps: [
+        { key: 'w', title: 'Lavora', spec: work, agentId: 'alfa' },
+        { key: 'r', title: 'Rivedi', spec: check, competence: 'review', dependsOn: ['w'] }
+      ] }
+    }, 'owner:ui', corr(`corr-prova-${Math.random().toString(36).slice(2, 10)}`));
+    await s.settle();
+    return tasksOf(s, out.rootTaskId);
+  };
+
+  it('lavoro dichiarato senza nessuno strumento, né dal passo né dal Revisore: esito parziale con la nota', async () => {
+    const s = stack();
+    s.agents.define(agentInput('alfa', 'motore-a'), 'owner', 'c1');
+    s.agents.define(agentInput('beta', 'motore-b', { competences: ['review'] }), 'owner', 'c2');
+    const [w, r] = await review(s, 'RISPOSTA:file creato e test passati', 'RISPOSTA:approvato');
+    expect(w?.result?.outcome).toBe('success');
+    expect(r).toMatchObject({ status: 'succeeded', result: { outcome: 'partial' } });
+    expect(r?.result?.summary).toMatch(/^NON VERIFICATO da VISIONE[\s\S]*\n\napprovato$/);
+    const recorded = s.events('task.result.recorded').find((e) => (e.payload as { taskId: string }).taskId === r?.id);
+    expect(recorded?.payload).toMatchObject({ outcome: 'partial' });
+  });
+
+  it('con una prova (del passo o del Revisore), o se il passo non dichiara lavoro: esito riuscito', async () => {
+    const s = stack();
+    s.agents.define(agentInput('alfa', 'motore-a'), 'owner', 'c1');
+    s.agents.define(agentInput('beta', 'motore-b', { competences: ['review'] }), 'owner', 'c2');
+    const fromWork = await review(s, 'COMANDO:npm test|12 passed\nRISPOSTA:test passati', 'RISPOSTA:approvato');
+    const fromReviewer = await review(s, 'RISPOSTA:file creato', 'COMANDO:type nota.txt|ciao\nRISPOSTA:visto');
+    const textOnly = await review(s, 'RISPOSTA:tre idee per una cena veloce', 'RISPOSTA:vanno bene');
+    for (const [, r] of [fromWork, fromReviewer, textOnly]) expect(r?.result).toMatchObject({ outcome: 'success' });
+    expect(fromReviewer[1]?.result?.summary).toBe('visto');
+    // La prova nel registro è quella consegnata dal motore, legata al turno che ha chiuso il passo.
+    const proof = s.events('tool.call.finished').find((e) => (e.payload as { turnId: string }).turnId === fromWork[0]?.turnId);
+    expect(proof?.payload).toMatchObject({ tool: 'Bash', ok: true, input: 'npm test', output: '12 passed' });
+  });
+
+  it('il brief del Revisore mostra le prove registrate da VISIONE, o dice che non ce ne sono', async () => {
+    const s = stack({ memory: true });
+    s.agents.define(agentInput('alfa', 'motore-a'), 'owner', 'c1');
+    s.agents.define(agentInput('beta', 'motore-b', { competences: ['review'] }), 'owner', 'c2');
+    await review(s, 'COMANDO:npm test|12 passed\nRISPOSTA:test passati', 'RISPOSTA:approvato');
+    await review(s, 'RISPOSTA:file creato', 'RISPOSTA:approvato');
+    const [proven, bare] = s.adapters['motore-b']?.turns.map((t) => t.text) ?? [];
+    expect(proven).toContain('Sei il revisore');
+    expect(proven).toMatch(/## Prove registrate da VISIONE[\s\S]*Bash riuscito: npm test\n\s+uscita: 12 passed/);
+    expect(bare).toMatch(/## Prove registrate da VISIONE[\s\S]*nessuno strumento eseguito visto da VISIONE/);
+    // Il passo che lavora non riceve la regola del Revisore.
+    expect(s.adapters['motore-a']?.turns[0]?.text).not.toContain('Sei il revisore');
+  });
+});
+
 describe('Director — DoD: obiettivo scomposto, due agenti di motori diversi, risultati', () => {
   it('piano esplicito A → B su motori diversi: eseguiti in ordine, risultati, sintesi, correlazione unica', async () => {
     const s = stack();
@@ -29,7 +83,7 @@ describe('Director — DoD: obiettivo scomposto, due agenti di motori diversi, r
     const out = s.director.submit({
       goal: 'Scrivi e rivedi una funzione',
       plan: { steps: [
-        { key: 'scrivi', title: 'Scrivi', spec: 'Scrivi la funzione. RISPOSTA:funzione scritta', agentId: 'alfa' },
+        { key: 'scrivi', title: 'Scrivi', spec: 'Scrivi la funzione.\nCOMANDO:npm test|3 passed\nRISPOSTA:funzione scritta', agentId: 'alfa' },
         { key: 'rivedi', title: 'Rivedi', spec: 'Rivedi la funzione. RISPOSTA:revisione ok', competence: 'review', dependsOn: ['scrivi'] }
       ] }
     }, 'owner:ui', corr('corr-goal-0001'));

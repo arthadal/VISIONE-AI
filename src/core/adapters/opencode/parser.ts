@@ -8,6 +8,7 @@
 // Righe non JSON o di tipo sconosciuto vengono ignorate (contate), mai un'eccezione.
 import { runtimeError, type AgentUsage, type RuntimeError } from '../../../shared/contracts/index.ts';
 import type { AgentEvent } from '../index.ts';
+import { toolProof } from '../proof.ts';
 
 export interface ParsedLine {
   readonly events: AgentEvent[];
@@ -113,7 +114,8 @@ export function parseRunLine(line: string, turnId: string): ParsedLine {
       if (finished) {
         events.push({
           kind: 'tool.finished', turnId, toolCallId, tool, ok: state.status === 'completed',
-          ...(start !== undefined && end !== undefined && end >= start ? { durationMs: end - start } : {})
+          ...(start !== undefined && end !== undefined && end >= start ? { durationMs: end - start } : {}),
+          proof: toolProof(state.input, state.status === 'completed' ? state.output : state.error)
         });
       }
       return { ...base, events };

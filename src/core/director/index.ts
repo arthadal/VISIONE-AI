@@ -35,6 +35,7 @@ import type { AuditLog } from '../audit/index.ts';
 import type { EventBus } from '../bus/index.ts';
 import { CommandFailure, type CommandRouter } from '../commands/index.ts';
 import type { EventEmitter } from '../events/index.ts';
+import { claimsWork, isReviewTask, recordedProofs, type Journal } from '../journal/index.ts';
 import type { ActionPolicy } from '../policy/index.ts';
 import { TaskEngineError, type Correlation, type Dispatch, type NewTask, type Retry, type TaskEngine, type TaskEngineHooks } from '../tasks/index.ts';
 import { withoutFacts } from '../memory/index.ts';
@@ -74,6 +75,8 @@ export interface DirectorDeps {
   breaker?: { steer: number; constrain: number; open: number };
   /** Agente di ripiego per il limite di quota (P-83), dalla config; null = solo ricerca generica. */
   limitFallbackAgentId?: string | null;
+  /** Registro eventi: le prove degli strumenti per il controllo delle revisioni (issue #1, idea 6). */
+  journal?: Pick<Journal, 'read'>;
   /**
    * Chi comanda (P-105): l'agente che pianifica quando l'invio non indica né piano né pianificatore.
    * Letto a ogni invio (si cambia dalla procedura guidata senza riavvio); vuoto o archiviato = regole.
@@ -82,6 +85,11 @@ export interface DirectorDeps {
 }
 
 const SOURCE = { kind: 'director', id: 'director' } as const;
+/**
+ * Revisione di un lavoro che dice di aver fatto qualcosa (file, comandi, test) chiusa senza nessuno strumento
+ * eseguito, né da chi ha lavorato né dal Revisore (issue #1, idea 6).
+ */
+const UNPROVEN_REVIEW = 'NON VERIFICATO da VISIONE: il lavoro controllato dice di aver fatto qualcosa, ma né lui né questa revisione hanno eseguito strumenti; l\'esito si basa solo sulla parola degli agenti.';
 /** Codici per cui un nuovo tentativo non cambierebbe l'esito. */
 const FINAL_ERRORS: ReadonlySet<TaskError['code']> = new Set(['policy_blocked', 'approval_denied', 'invalid_plan']);
 const LEVEL_RANK: Record<BreakerLevel, number> = { closed: 0, steer: 1, constrain: 2, open: 3 };
@@ -332,6 +340,15 @@ export function createDirector(deps: DirectorDeps): Director {
 
     onAttemptSucceeded(_task, agentId) {
       if ((breakers.get(agentId)?.failures ?? 0) > 0) setBreaker(agentId, 0, 'turno riuscito');
+    },
+
+    vet(task, agentId, turnId) {
+      const journal = deps.journal;
+      if (!journal || !isReviewTask(task, agents.get(agentId)?.competences ?? [])) return null;
+      const checked = task.dependsOn.map((d) => engine.get(d)).filter((t): t is Task => t !== null);
+      if (!checked.some((t) => claimsWork(t.result?.summary ?? ''))) return null;
+      if (recordedProofs(journal, task, turnId).length > 0) return null;
+      return checked.some((t) => recordedProofs(journal, t, t.turnId).length > 0) ? null : UNPROVEN_REVIEW;
     },
 
     expand(task: Task, result: TaskResult): NewTask[] {

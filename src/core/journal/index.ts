@@ -13,6 +13,8 @@ import {
 } from '../../shared/contracts/index.ts';
 import type { Db, Row, SqlValue } from '../db/index.ts';
 
+export { claimsWork, isReviewTask, recordedProofs, type RecordedProof } from './proofs.ts';
+
 export interface JournalQuery {
   /** Eventi con seq > afterSeq in ordine crescente; assente = gli ultimi `limit`. */
   afterSeq?: number | undefined;

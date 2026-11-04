@@ -58,6 +58,11 @@ export interface TaskEngineHooks {
   /** Chiamato dopo ogni tentativo fallito; `canRetry` false = tentativi esauriti (solo per registrarlo). */
   onAttemptFailed(task: Task, error: TaskError, canRetry: boolean): Retry;
   onAttemptSucceeded?(task: Task, agentId: string): void;
+  /**
+   * Controllo dell'esito riuscito prima di registrarlo: una nota = esito parziale, con la nota in testa al
+   * riassunto (issue #1, idea 6: una revisione senza nessuna prova non è un'approvazione).
+   */
+  vet?(task: Task, agentId: string, turnId: string | null): string | null;
   /** Un task di pianificazione è riuscito: passi da aggiungere sotto la radice (stessa transazione). */
   expand?(task: Task, result: TaskResult): NewTask[];
 }
@@ -131,6 +136,8 @@ export interface TaskEngineDeps {
 
 const SOURCE = { kind: 'visione', id: 'tasks' } as const;
 const MAX_SUMMARY_EVENT = 4_000;
+/** Tetto del riassunto nel contratto (`taskResultSchema`). */
+const MAX_SUMMARY = 20_000;
 
 export function specHash(kind: string, title: string, spec: string): string {
   return createHash('sha256').update(`${kind}\n${title}\n${spec}`).digest('hex');
@@ -402,12 +409,13 @@ export function createTaskEngine(deps: TaskEngineDeps): TaskEngine {
     }
     switch (result.status) {
       case 'succeeded': {
-        const summary = result.text;
-        const outcome: TaskResult = { outcome: 'success', summary, artifacts: result.artifacts, producedBy: agentId };
+        const note = task.kind === 'plan' ? null : hooks?.vet?.(task, agentId, result.turnId) ?? null;
+        const summary = note ? `${note}\n\n${result.text}`.slice(0, MAX_SUMMARY) : result.text;
+        const outcome: TaskResult = { outcome: note ? 'partial' : 'success', summary, artifacts: result.artifacts, producedBy: agentId };
         db.transaction(() => {
           q.result.run(task.id, outcome.outcome, summary, JSON.stringify(outcome.artifacts), agentId, now());
           events.emit('task.result.recorded', {
-            taskId: task.id, rootId: task.rootId, outcome: 'success', summary: summary.slice(0, MAX_SUMMARY_EVENT), chars: summary.length, producedBy: agentId
+            taskId: task.id, rootId: task.rootId, outcome: outcome.outcome, summary: summary.slice(0, MAX_SUMMARY_EVENT), chars: summary.length, producedBy: agentId
           }, { source: { kind: 'agent', id: agentId }, target: { kind: 'task', id: task.id }, correlationId: task.correlationId });
           const added = task.kind === 'plan' && hooks?.expand ? hooks.expand(task, outcome) : [];
           if (added.length > 0) insertBatch({ id: task.rootId, rootId: task.rootId }, task.rootId, added, 'director', corr);

@@ -6,6 +6,7 @@ import { MessageChannelMain, utilityProcess, type UtilityProcess, type WebConten
 import { IPC_CHANNELS, effectiveTtsProvider, formatIssues, voiceToMainSchema, type CoreToVoice, type Edition, type Language, type VoiceToCore } from '../shared/contracts/index.ts';
 import type { VisioneConfig } from '../shared/node/config.ts';
 import type { Logger } from '../shared/node/logging.ts';
+import { keepFullSpeed, logQos } from '../shared/node/qos.ts';
 import { join } from 'node:path';
 
 export interface VoiceHostDeps {
@@ -64,6 +65,8 @@ export function createVoiceHost(deps: VoiceHostDeps): VoiceHost {
     child = c;
     c.once('spawn', () => {
       deps.toCore({ type: 'process', phase: 'starting', pid: c.pid ?? null, code: null, reason: '' });
+      // Riconoscimento e sintesi girano qui, senza finestra: Windows non deve rallentarli (issue #1, idea 8).
+      if (c.pid) keepFullSpeed([c.pid], logQos(deps.log, 'voce'));
       let now: { voice: VisioneConfig['voice']; language: Language } = { voice: deps.config, language: deps.language };
       try {
         if (deps.current) now = deps.current();

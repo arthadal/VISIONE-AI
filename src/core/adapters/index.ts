@@ -14,6 +14,7 @@ import {
 import type { Logger } from '../../shared/node/logging.ts';
 import type { EventEmitter } from '../events/index.ts';
 import type { CliRuntime, HookServer } from '../runtime/index.ts';
+import { PROOF_LIMITS, type ToolProof } from './proof.ts';
 
 export { createBuiltinAdapters, type BuiltinAdapterDeps } from './catalog/index.ts';
 export { AdapterError } from './errors.ts';
@@ -31,7 +32,7 @@ export type AgentEvent =
   | { kind: 'turn.started'; turnId: string }
   | { kind: 'message.text'; turnId: string; text: string; final: boolean }
   | { kind: 'tool.started'; turnId: string; toolCallId: string; tool: string; input?: unknown }
-  | { kind: 'tool.finished'; turnId: string; toolCallId: string; tool: string; ok: boolean; durationMs?: number }
+  | { kind: 'tool.finished'; turnId: string; toolCallId: string; tool: string; ok: boolean; durationMs?: number; proof?: ToolProof }
   | { kind: 'permission.requested'; requestId: string; action: ActionDescriptor }
   | { kind: 'turn.finished'; turnId: string; outcome: 'completed' | 'cancelled' | 'failed'; error?: RuntimeError }
   | { kind: 'usage'; usage: AgentUsage; source: 'turn' | 'session' }
@@ -282,7 +283,11 @@ export function createAgentEventSink(deps: {
         deps.events.emit('tool.call.started', { agentId: deps.agentId, turnId: e.turnId, toolCallId: e.toolCallId.slice(0, 200), tool: e.tool.slice(0, 100) }, { ...opts(), target: { kind: 'tool', id: e.tool.slice(0, 100) } });
         return;
       case 'tool.finished':
-        deps.events.emit('tool.call.finished', { agentId: deps.agentId, turnId: e.turnId, toolCallId: e.toolCallId.slice(0, 200), tool: e.tool.slice(0, 100), ok: e.ok, durationMs: e.durationMs ?? null },
+        deps.events.emit('tool.call.finished', {
+          agentId: deps.agentId, turnId: e.turnId, toolCallId: e.toolCallId.slice(0, 200), tool: e.tool.slice(0, 100), ok: e.ok, durationMs: e.durationMs ?? null,
+          ...(e.proof?.input ? { input: e.proof.input.slice(0, PROOF_LIMITS.input) } : {}),
+          ...(e.proof?.output ? { output: e.proof.output.slice(0, PROOF_LIMITS.output) } : {})
+        },
           { ...opts(), target: { kind: 'tool', id: e.tool.slice(0, 100) } });
         return;
       case 'process.exited':

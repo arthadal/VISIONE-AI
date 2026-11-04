@@ -962,7 +962,7 @@ export function createActionGate(deps: {
       } else {
         deps.audit.record({ actor: `agent:${agentId}`, action: `blocked:${action.kind}`, subject: action.target.slice(0, 200), decision: 'block', detail: verdict.reason });
       }
-      deps.events.emit('tool.call.denied', { agentId, tool: action.kind.slice(0, 100), classification: verdict.class, reason: verdict.reason, approvalId }, {
+      deps.events.emit('tool.call.denied', { agentId, tool: action.kind.slice(0, 100), classification: verdict.class, reason: verdict.reason.slice(0, 500), approvalId }, {
         source: { kind: 'visione', id: 'policy' }, target: { kind: 'agent', id: agentId }
       });
       const reason = verdict.class === 'block'

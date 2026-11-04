@@ -11,7 +11,7 @@ import { ensureHookShim, type ManagedProcess } from '../../runtime/index.ts';
 import { AdapterError } from '../errors.ts';
 import type { ActionGate, AdapterContext, AdapterModelOption, AdapterProbe, AgentAdapter, TurnOutcome } from '../index.ts';
 import { formatProbeCommand } from '../probe-command.ts';
-import { buildClaudeSettings, hookResponses, isGatedTool, mapHook, toolAction } from './hooks.ts';
+import { buildClaudeSettings, CLAUDE_FAILURE_HOOK, hookResponses, isGatedTool, mapHook, supportsExecForm, toolAction } from './hooks.ts';
 import { detectLimit, screenText, type LimitHit } from './limit.ts';
 import { screenRows, selectedOption } from './screen.ts';
 import { claudeSetupItems, parseAuthStatus } from './setup.ts';
@@ -314,7 +314,7 @@ export function createClaudeCodeAdapter(opts: ClaudeAdapterOptions): AgentAdapte
       const settingsPath = join(opts.shimDir, `settings-${ctx.instance.agentId}.json`);
       const def = ctx.definition;
       writeFileSync(identityPath, `# ${def.name}\n\nRuolo: ${def.role}\n\n${def.persona.instructions}\n`, 'utf8');
-      writeFileSync(settingsPath, JSON.stringify(buildClaudeSettings(nodePath, shim), null, 2), 'utf8');
+      writeFileSync(settingsPath, JSON.stringify(buildClaudeSettings(nodePath, shim, { execForm: supportsExecForm(cli.version) }), null, 2), 'utf8');
 
       const engineSessionId = resume?.engineSessionId || randomUUID();
       const sessionId = resume?.id ?? ulid();
@@ -356,6 +356,8 @@ export function createClaudeCodeAdapter(opts: ClaudeAdapterOptions): AgentAdapte
           case 'PostToolUse':
             if (current.halt) return hookResponses.halt(current.halt);
             return current.steer.length > 0 ? hookResponses.context('PostToolUse', current.steer.splice(0).join('\n')) : null;
+          case CLAUDE_FAILURE_HOOK:
+            return current.halt ? hookResponses.halt(current.halt) : null;
           case 'Stop': {
             current.inputMark = current.screenTotal;
             const cancelled = current.turn?.cancelled === true;

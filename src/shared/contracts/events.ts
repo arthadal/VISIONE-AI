@@ -331,7 +331,12 @@ export const EVENT_DEFINITIONS = {
   }),
   'tool.call.finished': defineEvent({
     category: 'tool', durability: 'durable', origin: 'core', severity: 'info', schema: 1,
-    payload: z.strictObject({ agentId, turnId, toolCallId: z.string().max(200), tool: z.string().max(100), ok: z.boolean(), durationMs: z.number().nonnegative().nullable() })
+    payload: z.strictObject({
+      agentId, turnId, toolCallId: z.string().max(200), tool: z.string().max(100), ok: z.boolean(), durationMs: z.number().nonnegative().nullable(),
+      /** Prova (issue #1, idea 6): comando o bersaglio, e uscita vera, come le consegna il motore. */
+      input: z.string().max(300).optional(),
+      output: z.string().max(1_200).optional()
+    })
   }),
 
   // --- Fase 6 (P-37…P-41): agenti, task, Director, approvazioni, messaggi, audit -------------
@@ -495,7 +500,7 @@ export const EVENT_DEFINITIONS = {
       agentId, taskId: z.string().max(64), turnId, attempt: z.number().int().nonnegative(), chars: count0, file: z.string().max(1024),
       resume: z.boolean(),
       // `skills` dal P-107k (Addestramento): facoltativo, gli eventi già registrati non lo hanno.
-      sections: z.strictObject({ resume: count0, chain: count0, team: count0.optional(), pinned: count0, skills: count0.optional(), codemap: count0.optional(), memory: count0, inbox: count0, events: count0 }),
+      sections: z.strictObject({ resume: count0, chain: count0, team: count0.optional(), pinned: count0, skills: count0.optional(), codemap: count0.optional(), proofs: count0.optional(), memory: count0, inbox: count0, events: count0 }),
       truncated: z.boolean()
     })
   }),

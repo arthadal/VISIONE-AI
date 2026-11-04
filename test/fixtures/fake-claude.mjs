@@ -35,7 +35,8 @@ function tokens(command) {
 function hook(event, payload) {
   const entry = event === 'StatusLine' ? settings.statusLine : settings.hooks?.[event]?.[0]?.hooks?.[0];
   if (!entry) return Promise.resolve(null);
-  const [cmd, ...rest] = tokens(entry.command);
+  // Exec form (`args`, dalla 2.1.139): il programma è `command` così com'è, senza shell né virgolette.
+  const [cmd, ...rest] = Array.isArray(entry.args) ? [entry.command, ...entry.args] : tokens(entry.command);
   return new Promise((resolve) => {
     const child = spawn(cmd, rest, { stdio: ['pipe', 'pipe', 'ignore'] });
     let stdout = '';

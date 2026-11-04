@@ -6,6 +6,7 @@
 // comandi codificati come sospetti, e sul PC di un tester sembrerebbe un malware.
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
+import { keepFullSpeed } from '../shared/node/qos.ts';
 import type { TtsChunk, TtsEngine } from './engines.ts';
 
 /**
@@ -188,6 +189,12 @@ export function startWindowsTtsProcess(log?: (line: string) => void): WindowsTts
     stdio: ['pipe', 'pipe', 'pipe'],
     windowsHide: true
   });
+  // La sintesi gira qui, senza finestra: Windows non deve rallentarla (issue #1, idea 8).
+  if (child.pid) {
+    keepFullSpeed([child.pid], (results, error) => {
+      if (error !== null || !results.every((r) => r.ok)) log?.(`rallentamento di Windows non tolto: ${error ?? results.map((r) => r.detail).join(', ')}`);
+    });
+  }
   let buffer = '';
   const lineHandlers: Array<(line: string) => void> = [];
   const exitHandlers: Array<(reason: string) => void> = [];

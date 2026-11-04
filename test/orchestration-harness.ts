@@ -52,6 +52,7 @@ export interface FakeAdapter extends AgentAdapter {
  * - `FALLISCI-UNA-VOLTA` → fallisce al primo turno di quel task, poi riesce;
  * - `LENTO` → resta in corso finché non viene annullato;
  * - `LIMITE` → evento `limit.reached` e turno fallito con `limit_reached` (P-83);
+ * - `COMANDO:<comando>|<uscita>` (una riga) → uno strumento Bash riuscito, con la sua prova (issue #1, idea 6);
  * - `RISPOSTA:<testo>` → testo finale = <testo> (fino a fine riga);
  * - `FATTO:<testo>` → il testo finale ha anche la riga `MEMORIA: <testo>` (Fase 7);
  * - `SCRIVI-MEMORIA:<intestazione>|<corpo>` → aggiunge la sezione a `memory.md` (`{task}` = id del task).
@@ -135,6 +136,12 @@ export function fakeAdapter(
       for (const write of input.text.matchAll(/SCRIVI-MEMORIA:([^|\n]*)\|(.*)/g)) {
         const heading = (write[1] ?? '').replaceAll('{task}', input.taskId ?? '').trim();
         appendFileSync(join(ctx.agentDir, 'memory.md'), `\n## ${heading}\n\n${(write[2] ?? '').trim()}\n`, 'utf8');
+      }
+      for (const [i, run] of [...input.text.matchAll(/COMANDO:([^|\n]*)\|(.*)/g)].entries()) {
+        const toolCallId = `${input.turnId}-comando-${i}`;
+        const command = (run[1] ?? '').trim();
+        ctx.emit({ kind: 'tool.started', turnId: input.turnId, toolCallId, tool: 'Bash', input: { command } });
+        ctx.emit({ kind: 'tool.finished', turnId: input.turnId, toolCallId, tool: 'Bash', ok: true, proof: { input: command, output: (run[2] ?? '').trim() } });
       }
       const fact = /FATTO:(.*)/.exec(input.text)?.[1]?.trim();
       const answer = (/RISPOSTA:(.*)/.exec(input.text)?.[1]?.trim() ?? `fatto da ${ctx.instance.agentId}`) + (fact ? `\nMEMORIA: ${fact}` : '');
@@ -239,7 +246,7 @@ export function createStack(opts: {
   engineRef = engine;
   let channel: MessageChannel | null = null;
   const director = createDirector({
-    engine, agents, approvals, policy, audit, events: h.emitter, bus: h.bus, log, agentsDir, workspaceDir,
+    engine, agents, approvals, policy, audit, events: h.emitter, bus: h.bus, log, agentsDir, workspaceDir, journal: h.journal,
     ...(opts.limitFallbackAgentId ? { limitFallbackAgentId: opts.limitFallbackAgentId } : {}),
     ...(opts.defaultPlannerAgentId ? { defaultPlannerAgentId: opts.defaultPlannerAgentId } : {}),
     reply: (to, act, body) => {

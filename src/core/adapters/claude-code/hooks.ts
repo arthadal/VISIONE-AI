@@ -5,15 +5,22 @@
 import { isAbsolute, join } from 'node:path';
 import type { AgentUsage } from '../../../shared/contracts/index.ts';
 import type { ActionDescriptor, AgentEvent } from '../index.ts';
+import { toolProof } from '../proof.ts';
 
 /** Hook registrati (come Munder `hookSettings`), più la statusLine per la finestra di contesto. */
 export const CLAUDE_HOOK_EVENTS = [
   'SessionStart', 'UserPromptSubmit', 'PreToolUse', 'PostToolUse', 'Notification', 'Stop',
   'SubagentStop', 'PreCompact', 'PostCompact'
 ] as const;
-export type ClaudeHookEvent = (typeof CLAUDE_HOOK_EVENTS)[number] | 'StatusLine';
+/**
+ * Lo strumento fallito (uscita diversa da zero, errore) non passa da `PostToolUse`: ha un hook suo, già nella
+ * 2.1.119 (CHANGELOG). Si registra solo con la exec form (dalla 2.1.139), così una CLI più vecchia non riceve
+ * un nome che non conosce.
+ */
+export const CLAUDE_FAILURE_HOOK = 'PostToolUseFailure';
+export type ClaudeHookEvent = (typeof CLAUDE_HOOK_EVENTS)[number] | typeof CLAUDE_FAILURE_HOOK | 'StatusLine';
 
-const TOOL_EVENTS: ReadonlySet<string> = new Set(['PreToolUse', 'PostToolUse']);
+const TOOL_EVENTS: ReadonlySet<string> = new Set(['PreToolUse', 'PostToolUse', CLAUDE_FAILURE_HOOK]);
 
 /** Comando di hook: node + shim + nome dell'evento, percorsi tra virgolette con barre normali. */
 export function hookCommand(nodePath: string, shimPath: string, event: ClaudeHookEvent): string {
@@ -21,11 +28,35 @@ export function hookCommand(nodePath: string, shimPath: string, event: ClaudeHoo
   return `${q(nodePath)} ${q(shimPath)} ${event}`;
 }
 
-/** Contenuto di `settings.json` per l'agente (passato con `--settings`, mai le impostazioni globali). */
-export function buildClaudeSettings(nodePath: string, shimPath: string): Record<string, unknown> {
+/**
+ * Prima versione con la «exec form» degli hook (`command` + `args`, lanciata senza shell): CHANGELOG di
+ * Claude Code 2.1.139. Dalla 2.1.120, senza Git Bash, la forma con la shell gira in PowerShell, dove
+ * `"node" "shim" Evento` è un errore di sintassi (misurato il 04/11/2026): nessun hook arriva, e la verifica
+ * dice «non ha segnalato l'avvio (hook SessionStart)».
+ */
+const EXEC_FORM_SINCE = [2, 1, 139] as const;
+
+/** La CLI installata accetta `args` negli hook? Versione illeggibile: no (resta la forma con la shell). */
+export function supportsExecForm(version: string | null | undefined): boolean {
+  const m = /(\d+)\.(\d+)\.(\d+)/.exec(version ?? '');
+  if (!m) return false;
+  const v = [Number(m[1]), Number(m[2]), Number(m[3])];
+  for (let i = 0; i < 3; i++) if (v[i] !== EXEC_FORM_SINCE[i]) return (v[i] ?? 0) > (EXEC_FORM_SINCE[i] ?? 0);
+  return true;
+}
+
+/**
+ * Contenuto di `settings.json` per l'agente (passato con `--settings`, mai le impostazioni globali). Con `execForm`
+ * gli hook lanciano node direttamente (vale con e senza Git Bash); la statusLine non ha `args` e resta con la shell.
+ */
+export function buildClaudeSettings(nodePath: string, shimPath: string, opts: { execForm?: boolean } = {}): Record<string, unknown> {
   const hooks: Record<string, unknown> = {};
-  for (const event of CLAUDE_HOOK_EVENTS) {
-    const entry = { hooks: [{ type: 'command', command: hookCommand(nodePath, shimPath, event) }] };
+  const events: readonly ClaudeHookEvent[] = opts.execForm ? [...CLAUDE_HOOK_EVENTS, CLAUDE_FAILURE_HOOK] : CLAUDE_HOOK_EVENTS;
+  for (const event of events) {
+    const command = opts.execForm
+      ? { type: 'command', command: nodePath, args: [shimPath, event] }
+      : { type: 'command', command: hookCommand(nodePath, shimPath, event) };
+    const entry = { hooks: [command] };
     hooks[event] = [TOOL_EVENTS.has(event) ? { matcher: '*', ...entry } : entry];
   }
   return { hooks, statusLine: { type: 'command', command: hookCommand(nodePath, shimPath, 'StatusLine') } };
@@ -35,6 +66,10 @@ type Json = Record<string, unknown>;
 const obj = (v: unknown): Json | null => (typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Json) : null);
 const str = (v: unknown): string | null => (typeof v === 'string' && v !== '' ? v : null);
 const int = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : undefined);
+const took = (v: unknown): { durationMs?: number } => {
+  const ms = int(v);
+  return ms === undefined ? {} : { durationMs: ms };
+};
 
 export interface HookContext {
   readonly turnId: string | null;
@@ -58,8 +93,16 @@ export function mapHook(event: string, payload: unknown, ctx: HookContext): Agen
     case 'PostToolUse': {
       const response = obj(p.tool_response);
       const failed = response?.is_error === true || response?.success === false || typeof response?.error === 'string';
-      return [{ kind: 'tool.finished', turnId, toolCallId: str(p.tool_use_id) ?? ctx.nextId(), tool: str(p.tool_name) ?? 'sconosciuto', ok: !failed }];
+      return [{
+        kind: 'tool.finished', turnId, toolCallId: str(p.tool_use_id) ?? ctx.nextId(), tool: str(p.tool_name) ?? 'sconosciuto', ok: !failed,
+        ...took(p.duration_ms), proof: toolProof(p.tool_input, p.tool_response)
+      }];
     }
+    case CLAUDE_FAILURE_HOOK:
+      return [{
+        kind: 'tool.finished', turnId, toolCallId: str(p.tool_use_id) ?? ctx.nextId(), tool: str(p.tool_name) ?? 'sconosciuto', ok: false,
+        ...took(p.duration_ms), proof: toolProof(p.tool_input, p.error)
+      }];
     case 'Notification': {
       const message = str(p.message) ?? '';
       const type = str(p.notification_type) ?? '';
